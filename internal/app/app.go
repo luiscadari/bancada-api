@@ -15,6 +15,7 @@ import (
 	"github.com/luiscadari/bancada-api/internal/platform/config"
 	"github.com/luiscadari/bancada-api/internal/platform/database"
 	"github.com/luiscadari/bancada-api/internal/platform/httpx"
+	"github.com/luiscadari/bancada-api/internal/registry"
 )
 
 // App is the assembled HTTP application.
@@ -23,6 +24,7 @@ type App struct {
 	AppDB    *gorm.DB
 	SystemDB *gorm.DB
 	Identity *identity.Service
+	Registry *registry.Service
 }
 
 // New builds the application from cfg.
@@ -55,9 +57,13 @@ func New(cfg config.Config) (*App, error) {
 		PublicAppURL:  cfg.PublicAppURL,
 	})
 
+	registrySvc := registry.NewService()
+	identitySvc.OnAccountCreated(registrySvc.OnAccountCreated)
+
 	server := &api.Server{
-		Health:  api.Health{DB: appDB},
-		Handler: identity.NewHandler(identitySvc),
+		Health:          api.Health{DB: appDB},
+		IdentityHandler: identity.NewHandler(identitySvc),
+		RegistryHandler: registry.NewHandler(registrySvc),
 	}
 
 	if cfg.Env == "production" {
@@ -83,7 +89,7 @@ func New(cfg config.Config) (*App, error) {
 		ErrorHandler: func(c *gin.Context, err error, _ int) { httpx.RequestError(c, err) },
 	})
 
-	return &App{Router: r, AppDB: appDB, SystemDB: systemDB, Identity: identitySvc}, nil
+	return &App{Router: r, AppDB: appDB, SystemDB: systemDB, Identity: identitySvc, Registry: registrySvc}, nil
 }
 
 // Close releases the database pools.

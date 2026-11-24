@@ -89,6 +89,7 @@ require (
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3 // indirect
 	github.com/sethvargo/go-retry v0.5.0 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.6 // indirect
+	github.com/shopspring/decimal v1.6.0 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
 	github.com/theory/jsonpath v0.12.3 // indirect
 	github.com/tklauser/go-sysconf v0.4.0 // indirect

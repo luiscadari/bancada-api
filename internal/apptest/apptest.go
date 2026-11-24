@@ -75,6 +75,17 @@ type Response struct {
 	Header http.Header
 }
 
+// Items returns the "items" array of a list response.
+func (r Response) Items(t testing.TB) []map[string]any {
+	t.Helper()
+	raw, _ := r.JSON(t)["items"].([]any)
+	out := make([]map[string]any, len(raw))
+	for i, v := range raw {
+		out[i], _ = v.(map[string]any)
+	}
+	return out
+}
+
 // JSON decodes the body into a generic map.
 func (r Response) JSON(t testing.TB) map[string]any {
 	t.Helper()
@@ -155,14 +166,19 @@ func Unique() string {
 	return fmt.Sprintf("%d%s", seq.Add(1), strings.ReplaceAll(uuid.NewString()[:8], "-", ""))
 }
 
-// Signup creates a new account and returns its signed-in owner.
-func Signup(t testing.TB, env *Env) Tenant {
+// Signup creates a new account (with the IT repair niche pack) and returns its
+// signed-in owner.
+func Signup(t testing.TB, env *Env) Tenant { return SignupWith(t, env, true) }
+
+// SignupWith creates a new account, choosing whether to apply the niche pack.
+func SignupWith(t testing.TB, env *Env, applyNichePack bool) Tenant {
 	t.Helper()
 	email := "owner" + Unique() + "@example.com"
 	res := Client{Env: env}.Do(t, http.MethodPost, "/v1/auth/signup", map[string]any{
-		"account": map[string]any{"trade_name": "Loja " + Unique()},
-		"branch":  map[string]any{"name": "Matriz", "os_prefix": "MAT"},
-		"owner":   map[string]any{"name": "Dona", "email": email, "password": "senha-forte-123"},
+		"account":          map[string]any{"trade_name": "Loja " + Unique()},
+		"branch":           map[string]any{"name": "Matriz", "os_prefix": "MAT"},
+		"owner":            map[string]any{"name": "Dona", "email": email, "password": "senha-forte-123"},
+		"apply_niche_pack": applyNichePack,
 	})
 	if res.Status != http.StatusCreated {
 		t.Fatalf("signup: %d %s", res.Status, res.Body)

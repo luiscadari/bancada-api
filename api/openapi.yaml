@@ -19,6 +19,8 @@ tags:
   - name: health
   - name: auth
   - name: identity
+  - name: registry
+  - name: catalog
 paths:
   /healthz:
     get:
@@ -447,6 +449,552 @@ paths:
         default:
           $ref: "#/components/responses/Problem"
 
+  /v1/customers:
+    get:
+      tags: [registry]
+      operationId: listCustomers
+      summary: Search customers by name, document, phone or email (RF-01, UC-01)
+      parameters:
+        - $ref: "#/components/parameters/Search"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [registry]
+      operationId: createCustomer
+      summary: Register a customer with its contacts (RF-01, RF-45)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerCreate"
+      responses:
+        "201":
+          description: Created (or the existing record, when the id was already used)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/customers/{customerId}:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+    get:
+      tags: [registry]
+      operationId: getCustomer
+      responses:
+        "200":
+          description: The record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [registry]
+      operationId: updateCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerUpdate"
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/customers/{customerId}/contacts:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+    post:
+      tags: [registry]
+      operationId: createContact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInput"
+      responses:
+        "201":
+          description: Created contact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/customers/{customerId}/contacts/{contactId}:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+      - $ref: "#/components/parameters/ContactId"
+    patch:
+      tags: [registry]
+      operationId: updateContact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactUpdate"
+      responses:
+        "200":
+          description: Updated contact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        default:
+          $ref: "#/components/responses/Problem"
+    delete:
+      tags: [registry]
+      operationId: deleteContact
+      responses:
+        "204":
+          description: Removed
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/customers/{customerId}/cost-centers:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+    post:
+      tags: [registry]
+      operationId: createCostCenter
+      summary: Add a cost center (department to bill) to a company customer (RF-45, RN-34)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CostCenterInput"
+      responses:
+        "201":
+          description: Created cost center
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CostCenter"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/customers/{customerId}/cost-centers/{costCenterId}:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+      - $ref: "#/components/parameters/CostCenterId"
+    patch:
+      tags: [registry]
+      operationId: updateCostCenter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CostCenterUpdate"
+      responses:
+        "200":
+          description: Updated cost center
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CostCenter"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/equipment-types:
+    get:
+      tags: [registry]
+      operationId: listEquipmentTypes
+      summary: Equipment types with their custom fields and entry checklist (RF-03)
+      responses:
+        "200":
+          description: Types
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EquipmentTypeList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [registry]
+      operationId: createEquipmentType
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentTypeInput"
+      responses:
+        "201":
+          description: Created type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EquipmentType"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/equipment-types/{equipmentTypeId}:
+    parameters:
+      - $ref: "#/components/parameters/EquipmentTypeId"
+    get:
+      tags: [registry]
+      operationId: getEquipmentType
+      responses:
+        "200":
+          description: The record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EquipmentType"
+        default:
+          $ref: "#/components/responses/Problem"
+    put:
+      tags: [registry]
+      operationId: updateEquipmentType
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentTypeInput"
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EquipmentType"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/equipment:
+    get:
+      tags: [registry]
+      operationId: listEquipment
+      summary: Search equipment by serial number, brand or model (RF-02, RF-36)
+      parameters:
+        - $ref: "#/components/parameters/Search"
+        - name: customer_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: serial_number
+          in: query
+          description: Exact serial number (case-insensitive).
+          schema:
+            type: string
+            maxLength: 120
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of equipment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EquipmentList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [registry]
+      operationId: createEquipment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentCreate"
+      responses:
+        "201":
+          description: Created equipment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Equipment"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/equipment/{equipmentId}:
+    parameters:
+      - $ref: "#/components/parameters/EquipmentId"
+    get:
+      tags: [registry]
+      operationId: getEquipment
+      responses:
+        "200":
+          description: The record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Equipment"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [registry]
+      operationId: updateEquipment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentUpdate"
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Equipment"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/services:
+    get:
+      tags: [catalog]
+      operationId: listServices
+      summary: Service catalog (RF-04)
+      parameters:
+        - $ref: "#/components/parameters/Search"
+        - $ref: "#/components/parameters/Active"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [catalog]
+      operationId: createService
+      summary: Add a service to the catalog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceInput"
+      responses:
+        "201":
+          description: Created (or the existing record, when the id was already used)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/services/{serviceId}:
+    parameters:
+      - $ref: "#/components/parameters/ServiceId"
+    get:
+      tags: [catalog]
+      operationId: getService
+      responses:
+        "200":
+          description: The record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [catalog]
+      operationId: updateService
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceUpdate"
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/products:
+    get:
+      tags: [catalog]
+      operationId: listProducts
+      summary: Products and parts by name, SKU or barcode (RF-05)
+      parameters:
+        - $ref: "#/components/parameters/Search"
+        - $ref: "#/components/parameters/Active"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [catalog]
+      operationId: createProduct
+      summary: Add a product or part
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created (or the existing record, when the id was already used)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/products/{productId}:
+    parameters:
+      - $ref: "#/components/parameters/ProductId"
+    get:
+      tags: [catalog]
+      operationId: getProduct
+      responses:
+        "200":
+          description: The record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [catalog]
+      operationId: updateProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/suppliers:
+    get:
+      tags: [catalog]
+      operationId: listSuppliers
+      summary: Suppliers (RF-06)
+      parameters:
+        - $ref: "#/components/parameters/Search"
+        - $ref: "#/components/parameters/Active"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupplierList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [catalog]
+      operationId: createSupplier
+      summary: Add a supplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplierInput"
+      responses:
+        "201":
+          description: Created (or the existing record, when the id was already used)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/suppliers/{supplierId}:
+    parameters:
+      - $ref: "#/components/parameters/SupplierId"
+    get:
+      tags: [catalog]
+      operationId: getSupplier
+      responses:
+        "200":
+          description: The record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [catalog]
+      operationId: updateSupplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplierUpdate"
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/niche-packs/{packCode}/apply:
+    parameters:
+      - name: packCode
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [it_repair]
+    post:
+      tags: [catalog]
+      operationId: applyNichePack
+      summary: Add the equipment types, checklists and services of a niche pack (RF-08)
+      description: Items whose name already exists are skipped, so applying twice is harmless.
+      responses:
+        "200":
+          description: What was added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NichePackResult"
+        default:
+          $ref: "#/components/responses/Problem"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -455,6 +1003,77 @@ components:
       bearerFormat: JWT
 
   parameters:
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ContactId:
+      name: contactId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CostCenterId:
+      name: costCenterId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    EquipmentTypeId:
+      name: equipmentTypeId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    EquipmentId:
+      name: equipmentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ServiceId:
+      name: serviceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProductId:
+      name: productId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SupplierId:
+      name: supplierId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Search:
+      name: q
+      in: query
+      required: false
+      description: Free-text search.
+      schema:
+        type: string
+        maxLength: 120
+    Active:
+      name: active
+      in: query
+      required: false
+      description: Filter by active flag. Omit to list everything.
+      schema:
+        type: boolean
     BranchId:
       name: branchId
       in: path
@@ -612,6 +1231,10 @@ components:
               maxLength: 254
             password:
               $ref: "#/components/schemas/Password"
+        apply_niche_pack:
+          type: boolean
+          default: true
+          description: Seed the equipment types, checklists and services of the account's niche (RF-08).
 
     Password:
       type: string
@@ -1067,3 +1690,843 @@ components:
         last_number:
           type: string
           example: MAT-000100
+
+    Timestamps:
+      type: object
+      required: [created_at, updated_at, version]
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+
+    ClientId:
+      type: string
+      format: uuid
+      description: Optional UUIDv7 generated by the client. Repeating a create with the same id returns the existing record.
+
+    CustomerType:
+      type: string
+      enum: [individual, company]
+      description: individual = pessoa física (CPF), company = pessoa jurídica (CNPJ).
+
+    LegalBasis:
+      type: string
+      enum: [contract, consent, legal_obligation, legitimate_interest]
+      description: LGPD legal basis for processing the customer's data (RN-31).
+
+    Consent:
+      type: object
+      required: [granted]
+      properties:
+        granted:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    Consents:
+      type: object
+      description: Communication consent per channel (RF-01, RN-29).
+      required: [whatsapp, email]
+      properties:
+        whatsapp:
+          $ref: "#/components/schemas/Consent"
+        email:
+          $ref: "#/components/schemas/Consent"
+
+    ConsentsInput:
+      type: object
+      properties:
+        whatsapp:
+          type: boolean
+        email:
+          type: boolean
+
+    Contact:
+      type: object
+      required: [id, customer_id, name, is_primary, is_requester, is_approver]
+      properties:
+        id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        is_primary:
+          type: boolean
+        is_requester:
+          type: boolean
+          description: May bring equipment on behalf of a company customer (RN-34).
+        is_approver:
+          type: boolean
+          description: May approve quotes on behalf of a company customer (RN-34).
+        approval_limit_cents:
+          type: integer
+          format: int64
+          nullable: true
+          description: Maximum quote total this approver may approve; null means no limit.
+
+    ContactInput:
+      type: object
+      required: [name]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 30
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        is_primary:
+          type: boolean
+        is_requester:
+          type: boolean
+        is_approver:
+          type: boolean
+        approval_limit_cents:
+          type: integer
+          format: int64
+          minimum: 0
+
+    ContactUpdate:
+      type: object
+      minProperties: 1
+      description: Send an empty string to clear phone or email.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 30
+        email:
+          type: string
+          maxLength: 254
+        is_primary:
+          type: boolean
+        is_requester:
+          type: boolean
+        is_approver:
+          type: boolean
+        approval_limit_cents:
+          type: integer
+          format: int64
+          minimum: -1
+          description: Use -1 to remove the limit.
+
+    CostCenter:
+      type: object
+      required: [id, customer_id, name, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        code:
+          type: string
+          nullable: true
+        active:
+          type: boolean
+
+    CostCenterInput:
+      type: object
+      required: [name]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        code:
+          type: string
+          maxLength: 40
+
+    CostCenterUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        code:
+          type: string
+          maxLength: 40
+        active:
+          type: boolean
+
+    Customer:
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - type: object
+          required: [id, type, name, legal_basis, consents, contacts, cost_centers]
+          properties:
+            id:
+              type: string
+              format: uuid
+            type:
+              $ref: "#/components/schemas/CustomerType"
+            name:
+              type: string
+            document:
+              type: string
+              nullable: true
+              description: CPF or CNPJ, digits only.
+            notes:
+              type: string
+              nullable: true
+            legal_basis:
+              $ref: "#/components/schemas/LegalBasis"
+            consents:
+              $ref: "#/components/schemas/Consents"
+            contacts:
+              type: array
+              items:
+                $ref: "#/components/schemas/Contact"
+            cost_centers:
+              type: array
+              items:
+                $ref: "#/components/schemas/CostCenter"
+
+    CustomerCreate:
+      type: object
+      required: [type, name]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        type:
+          $ref: "#/components/schemas/CustomerType"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        document:
+          type: string
+          maxLength: 20
+        notes:
+          type: string
+          maxLength: 2000
+        legal_basis:
+          $ref: "#/components/schemas/LegalBasis"
+        consents:
+          $ref: "#/components/schemas/ConsentsInput"
+        contacts:
+          type: array
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/ContactInput"
+
+    CustomerUpdate:
+      type: object
+      minProperties: 1
+      description: Send an empty string to clear document or notes.
+      properties:
+        type:
+          $ref: "#/components/schemas/CustomerType"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        document:
+          type: string
+          maxLength: 20
+        notes:
+          type: string
+          maxLength: 2000
+        legal_basis:
+          $ref: "#/components/schemas/LegalBasis"
+        consents:
+          $ref: "#/components/schemas/ConsentsInput"
+
+    CustomerList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Customer"
+        next_cursor:
+          type: string
+          nullable: true
+
+    FieldKind:
+      type: string
+      enum: [text, number, integer, boolean, date, select]
+
+    Key:
+      type: string
+      pattern: "^[a-z][a-z0-9_]{0,49}$"
+      example: page_counter
+
+    CustomField:
+      type: object
+      required: [key, label, kind, required]
+      properties:
+        key:
+          $ref: "#/components/schemas/Key"
+        label:
+          type: string
+          minLength: 1
+          maxLength: 120
+        kind:
+          $ref: "#/components/schemas/FieldKind"
+        required:
+          type: boolean
+        options:
+          type: array
+          maxItems: 100
+          items:
+            type: string
+            minLength: 1
+            maxLength: 120
+          description: Allowed values for kind=select.
+
+    ChecklistKind:
+      type: string
+      enum: [check, text]
+
+    ChecklistItem:
+      type: object
+      required: [key, label, kind, required]
+      properties:
+        key:
+          $ref: "#/components/schemas/Key"
+        label:
+          type: string
+          minLength: 1
+          maxLength: 200
+        kind:
+          $ref: "#/components/schemas/ChecklistKind"
+        required:
+          type: boolean
+
+    EquipmentType:
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - type: object
+          required: [id, name, active, fields, checklist, field_schema]
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            description:
+              type: string
+              nullable: true
+            active:
+              type: boolean
+            fields:
+              type: array
+              items:
+                $ref: "#/components/schemas/CustomField"
+            checklist:
+              type: array
+              items:
+                $ref: "#/components/schemas/ChecklistItem"
+            field_schema:
+              type: object
+              additionalProperties: true
+              description: JSON Schema that validates equipment attributes of this type (ADR-05).
+
+    EquipmentTypeInput:
+      type: object
+      required: [name, fields, checklist]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 1000
+        active:
+          type: boolean
+        fields:
+          type: array
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/CustomField"
+        checklist:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/ChecklistItem"
+
+    EquipmentTypeList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/EquipmentType"
+
+    Equipment:
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - type: object
+          required: [id, customer_id, type_id, attributes]
+          properties:
+            id:
+              type: string
+              format: uuid
+            customer_id:
+              type: string
+              format: uuid
+            type_id:
+              type: string
+              format: uuid
+            brand:
+              type: string
+              nullable: true
+            model:
+              type: string
+              nullable: true
+            serial_number:
+              type: string
+              nullable: true
+            attributes:
+              type: object
+              additionalProperties: true
+            notes:
+              type: string
+              nullable: true
+
+    EquipmentCreate:
+      type: object
+      required: [customer_id, type_id]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        customer_id:
+          type: string
+          format: uuid
+        type_id:
+          type: string
+          format: uuid
+        brand:
+          type: string
+          maxLength: 120
+        model:
+          type: string
+          maxLength: 120
+        serial_number:
+          type: string
+          maxLength: 120
+        attributes:
+          type: object
+          additionalProperties: true
+          description: Values of the type's custom fields, validated by its field_schema.
+        notes:
+          type: string
+          maxLength: 2000
+
+    EquipmentUpdate:
+      type: object
+      minProperties: 1
+      description: Send an empty string to clear brand, model, serial_number or notes. attributes replaces all values.
+      properties:
+        type_id:
+          type: string
+          format: uuid
+        brand:
+          type: string
+          maxLength: 120
+        model:
+          type: string
+          maxLength: 120
+        serial_number:
+          type: string
+          maxLength: 120
+        attributes:
+          type: object
+          additionalProperties: true
+        notes:
+          type: string
+          maxLength: 2000
+
+    EquipmentList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Equipment"
+        next_cursor:
+          type: string
+          nullable: true
+
+    Percent:
+      type: number
+      format: double
+      minimum: 0
+      maximum: 100
+
+    Service:
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - type: object
+          required: [id, name, price_cents, warranty_days, commission_percent, active]
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            description:
+              type: string
+              nullable: true
+            price_cents:
+              type: integer
+              format: int64
+            estimated_minutes:
+              type: integer
+              nullable: true
+            warranty_days:
+              type: integer
+            commission_percent:
+              $ref: "#/components/schemas/Percent"
+            active:
+              type: boolean
+
+    ServiceInput:
+      type: object
+      required: [name, price_cents]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        estimated_minutes:
+          type: integer
+          minimum: 0
+        warranty_days:
+          type: integer
+          minimum: 0
+          maximum: 3650
+          description: Defaults to 90 (RN-18).
+        commission_percent:
+          $ref: "#/components/schemas/Percent"
+        active:
+          type: boolean
+
+    ServiceUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        estimated_minutes:
+          type: integer
+          minimum: 0
+        warranty_days:
+          type: integer
+          minimum: 0
+          maximum: 3650
+        commission_percent:
+          $ref: "#/components/schemas/Percent"
+        active:
+          type: boolean
+
+    ServiceList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Service"
+        next_cursor:
+          type: string
+          nullable: true
+
+    Quantity:
+      type: number
+      format: double
+      minimum: 0
+      maximum: 1000000
+
+    Product:
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - type: object
+          required: [id, name, unit, price_cents, min_stock, warranty_days, active]
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            description:
+              type: string
+              nullable: true
+            sku:
+              type: string
+              nullable: true
+            barcode:
+              type: string
+              nullable: true
+            unit:
+              type: string
+              example: un
+            cost_cents:
+              type: integer
+              format: int64
+              nullable: true
+              description: Only visible to owners ("Ver custo de peças e margem").
+            price_cents:
+              type: integer
+              format: int64
+            min_stock:
+              $ref: "#/components/schemas/Quantity"
+            warranty_days:
+              type: integer
+            active:
+              type: boolean
+
+    ProductInput:
+      type: object
+      required: [name, price_cents]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        sku:
+          type: string
+          maxLength: 60
+        barcode:
+          type: string
+          maxLength: 60
+        unit:
+          type: string
+          minLength: 1
+          maxLength: 10
+        cost_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        min_stock:
+          $ref: "#/components/schemas/Quantity"
+        warranty_days:
+          type: integer
+          minimum: 0
+          maximum: 3650
+        active:
+          type: boolean
+
+    ProductUpdate:
+      type: object
+      minProperties: 1
+      description: Send an empty string to clear description, sku or barcode.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        sku:
+          type: string
+          maxLength: 60
+        barcode:
+          type: string
+          maxLength: 60
+        unit:
+          type: string
+          minLength: 1
+          maxLength: 10
+        cost_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        min_stock:
+          $ref: "#/components/schemas/Quantity"
+        warranty_days:
+          type: integer
+          minimum: 0
+          maximum: 3650
+        active:
+          type: boolean
+
+    ProductList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        next_cursor:
+          type: string
+          nullable: true
+
+    Supplier:
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - type: object
+          required: [id, name, active]
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            document:
+              type: string
+              nullable: true
+            email:
+              type: string
+              nullable: true
+            phone:
+              type: string
+              nullable: true
+            contact_name:
+              type: string
+              nullable: true
+            notes:
+              type: string
+              nullable: true
+            active:
+              type: boolean
+
+    SupplierInput:
+      type: object
+      required: [name]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        document:
+          type: string
+          maxLength: 20
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 30
+        contact_name:
+          type: string
+          maxLength: 120
+        notes:
+          type: string
+          maxLength: 2000
+        active:
+          type: boolean
+
+    SupplierUpdate:
+      type: object
+      minProperties: 1
+      description: Send an empty string to clear optional fields.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        document:
+          type: string
+          maxLength: 20
+        email:
+          type: string
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 30
+        contact_name:
+          type: string
+          maxLength: 120
+        notes:
+          type: string
+          maxLength: 2000
+        active:
+          type: boolean
+
+    SupplierList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Supplier"
+        next_cursor:
+          type: string
+          nullable: true
+
+    NichePackResult:
+      type: object
+      required: [equipment_types_added, services_added]
+      properties:
+        equipment_types_added:
+          type: integer
+        services_added:
+          type: integer

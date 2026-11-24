@@ -1,0 +1,67 @@
+{
+  "code": "it_repair",
+  "equipment_types": [
+    {
+      "name": "Impressora",
+      "description": "Impressoras jato de tinta, laser e multifuncionais",
+      "fields": [
+        {"key": "technology", "label": "Tecnologia", "kind": "select", "required": false, "options": ["Jato de tinta", "Tanque de tinta", "Laser", "Matricial", "Térmica"]},
+        {"key": "page_counter", "label": "Contador de páginas", "kind": "integer", "required": false},
+        {"key": "connection", "label": "Conexão", "kind": "select", "required": false, "options": ["USB", "Rede", "Wi-Fi"]}
+      ],
+      "checklist": [
+        {"key": "power_cable", "label": "Cabo de força", "kind": "check", "required": true},
+        {"key": "usb_cable", "label": "Cabo USB", "kind": "check", "required": true},
+        {"key": "cartridges", "label": "Cartuchos ou toner", "kind": "check", "required": true},
+        {"key": "paper_tray", "label": "Bandeja de papel", "kind": "check", "required": true},
+        {"key": "physical_state", "label": "Estado físico (riscos, trincas, peças faltando)", "kind": "text", "required": true}
+      ]
+    },
+    {
+      "name": "Notebook",
+      "description": "Notebooks e ultrabooks",
+      "fields": [
+        {"key": "processor", "label": "Processador", "kind": "text", "required": false},
+        {"key": "ram_gb", "label": "Memória (GB)", "kind": "integer", "required": false},
+        {"key": "storage", "label": "Armazenamento", "kind": "text", "required": false},
+        {"key": "operating_system", "label": "Sistema operacional", "kind": "text", "required": false}
+      ],
+      "checklist": [
+        {"key": "charger", "label": "Carregador", "kind": "check", "required": true},
+        {"key": "battery", "label": "Bateria", "kind": "check", "required": true},
+        {"key": "screen_ok", "label": "Tela sem trincas", "kind": "check", "required": true},
+        {"key": "keyboard_ok", "label": "Teclado completo", "kind": "check", "required": true},
+        {"key": "powers_on", "label": "Liga na entrada", "kind": "check", "required": true},
+        {"key": "bag", "label": "Bolsa ou capa", "kind": "check", "required": false},
+        {"key": "physical_state", "label": "Estado físico (riscos, trincas, peças faltando)", "kind": "text", "required": true}
+      ]
+    },
+    {
+      "name": "Desktop",
+      "description": "Computadores de mesa",
+      "fields": [
+        {"key": "processor", "label": "Processador", "kind": "text", "required": false},
+        {"key": "ram_gb", "label": "Memória (GB)", "kind": "integer", "required": false},
+        {"key": "storage", "label": "Armazenamento", "kind": "text", "required": false},
+        {"key": "operating_system", "label": "Sistema operacional", "kind": "text", "required": false}
+      ],
+      "checklist": [
+        {"key": "power_cable", "label": "Cabo de força", "kind": "check", "required": true},
+        {"key": "monitor", "label": "Monitor", "kind": "check", "required": false},
+        {"key": "keyboard_mouse", "label": "Teclado e mouse", "kind": "check", "required": false},
+        {"key": "powers_on", "label": "Liga na entrada", "kind": "check", "required": true},
+        {"key": "physical_state", "label": "Estado físico do gabinete", "kind": "text", "required": true}
+      ]
+    }
+  ],
+  "services": [
+    {"name": "Diagnóstico", "description": "Análise técnica do defeito", "price_cents": 0, "estimated_minutes": 60, "warranty_days": 0},
+    {"name": "Limpeza e manutenção preventiva de impressora", "price_cents": 12000, "estimated_minutes": 90, "warranty_days": 90},
+    {"name": "Desentupimento de cabeça de impressão", "price_cents": 15000, "estimated_minutes": 120, "warranty_days": 90},
+    {"name": "Formatação com backup", "price_cents": 15000, "estimated_minutes": 180, "warranty_days": 90},
+    {"name": "Limpeza interna e troca de pasta térmica", "price_cents": 13000, "estimated_minutes": 90, "warranty_days": 90},
+    {"name": "Troca de tela de notebook", "description": "Mão de obra; a tela entra como peça", "price_cents": 10000, "estimated_minutes": 60, "warranty_days": 90},
+    {"name": "Troca de teclado de notebook", "description": "Mão de obra; o teclado entra como peça", "price_cents": 8000, "estimated_minutes": 60, "warranty_days": 90},
+    {"name": "Upgrade de memória ou SSD", "description": "Mão de obra; a peça é cobrada à parte", "price_cents": 6000, "estimated_minutes": 45, "warranty_days": 90}
+  ]
+}

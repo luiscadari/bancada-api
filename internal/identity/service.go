@@ -22,7 +22,7 @@ import (
 // AccountCreatedHook runs inside the signup transaction, after the account, its first
 // branch and its owner exist. Other modules use it to seed data (for example, the
 // niche pack of RF-08).
-type AccountCreatedHook func(ctx context.Context, accountID, branchID uuid.UUID, niche string) error
+type AccountCreatedHook func(ctx context.Context, accountID, branchID uuid.UUID, niche string, applyNichePack bool) error
 
 // Options configures the identity service.
 type Options struct {
@@ -84,14 +84,15 @@ type Session struct {
 // ---- signup ----------------------------------------------------------------------
 
 type SignupInput struct {
-	TradeName     string
-	Document      *string
-	BranchName    string
-	OSPrefix      string
-	Timezone      string
-	OwnerName     string
-	OwnerEmail    string
-	OwnerPassword string
+	TradeName      string
+	Document       *string
+	BranchName     string
+	OSPrefix       string
+	Timezone       string
+	OwnerName      string
+	OwnerEmail     string
+	OwnerPassword  string
+	ApplyNichePack bool
 }
 
 // Signup creates an account in trial with its first branch and owner (RF-S01, RN-S01).
@@ -138,7 +139,7 @@ func (s *Service) Signup(ctx context.Context, in SignupInput, meta RequestMeta) 
 			return err
 		}
 		for _, h := range s.hooks {
-			if err := h(ctx, accountID, branchID, niche); err != nil {
+			if err := h(ctx, accountID, branchID, niche, in.ApplyNichePack); err != nil {
 				return err
 			}
 		}

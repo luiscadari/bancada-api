@@ -29,6 +29,7 @@ func (h *Handler) Signup(ctx context.Context, req gen.SignupRequestObject) (gen.
 		TradeName: b.Account.TradeName, Document: b.Account.Document,
 		BranchName: b.Branch.Name, OSPrefix: b.Branch.OsPrefix, Timezone: deref(b.Branch.Timezone),
 		OwnerName: b.Owner.Name, OwnerEmail: string(b.Owner.Email), OwnerPassword: b.Owner.Password,
+		ApplyNichePack: b.ApplyNichePack == nil || *b.ApplyNichePack,
 	}
 	s, err := h.svc.Signup(ctx, in, meta(ctx))
 	if err != nil {
