@@ -17,6 +17,8 @@ security:
   - bearerAuth: []
 tags:
   - name: health
+  - name: auth
+  - name: identity
 paths:
   /healthz:
     get:
@@ -47,6 +49,404 @@ paths:
         default:
           $ref: "#/components/responses/Problem"
 
+  /v1/auth/signup:
+    post:
+      tags: [auth]
+      operationId: signup
+      summary: Create an account (trial) with its first branch and owner (RF-S01)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupRequest"
+      responses:
+        "201":
+          description: Account created; the owner is signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/auth/login:
+    post:
+      tags: [auth]
+      operationId: login
+      summary: Sign in with email and password
+      description: |
+        Desktop apps send `device` to register (or refresh) the installation on the given
+        branch; the access token is then bound to that device (ADR-07).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/auth/refresh:
+    post:
+      tags: [auth]
+      operationId: refreshSession
+      summary: Exchange a refresh token for a new session (rotation)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "200":
+          description: New session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/auth/logout:
+    post:
+      tags: [auth]
+      operationId: logout
+      summary: Revoke a refresh token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "204":
+          description: Signed out
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/auth/accept-invitation:
+    post:
+      tags: [auth]
+      operationId: acceptInvitation
+      summary: Accept an invitation by choosing a password (RF-41)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptInvitationRequest"
+      responses:
+        "200":
+          description: Invitation accepted; the user is signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /v1/me:
+    get:
+      tags: [identity]
+      operationId: getMe
+      summary: Current user, account, grants and accessible branches
+      responses:
+        "200":
+          description: Current principal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /v1/account:
+    get:
+      tags: [identity]
+      operationId: getAccount
+      responses:
+        "200":
+          description: The account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [identity]
+      operationId: updateAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountUpdate"
+      responses:
+        "200":
+          description: Updated account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /v1/branches:
+    get:
+      tags: [identity]
+      operationId: listBranches
+      summary: Branches the current user can access
+      responses:
+        "200":
+          description: Branches
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BranchList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [identity]
+      operationId: createBranch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BranchCreate"
+      responses:
+        "201":
+          description: Branch created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Branch"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/branches/{branchId}:
+    parameters:
+      - $ref: "#/components/parameters/BranchId"
+    get:
+      tags: [identity]
+      operationId: getBranch
+      responses:
+        "200":
+          description: Branch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Branch"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [identity]
+      operationId: updateBranch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BranchUpdate"
+      responses:
+        "200":
+          description: Updated branch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Branch"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/branches/{branchId}/settings:
+    parameters:
+      - $ref: "#/components/parameters/BranchId"
+    put:
+      tags: [identity]
+      operationId: updateBranchSettings
+      summary: Replace the branch settings (RF-40)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BranchSettings"
+      responses:
+        "200":
+          description: Updated branch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Branch"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /v1/users:
+    get:
+      tags: [identity]
+      operationId: listUsers
+      responses:
+        "200":
+          description: Users of the account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserList"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/users/invitations:
+    post:
+      tags: [identity]
+      operationId: inviteUser
+      summary: Invite a user by email with roles per branch (RF-41)
+      description: |
+        Returns the invitation link. Sending it by email arrives with the communication
+        module; until then the owner shares the link.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitationCreate"
+      responses:
+        "201":
+          description: Invitation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvitationCreated"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/users/{userId}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [identity]
+      operationId: getUser
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/users/{userId}/grants:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    put:
+      tags: [identity]
+      operationId: updateUserGrants
+      summary: Replace the roles and branches of a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrantsUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/users/{userId}/disable:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    post:
+      tags: [identity]
+      operationId: disableUser
+      summary: Disable a user and end their sessions
+      responses:
+        "200":
+          description: Disabled user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/users/{userId}/enable:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    post:
+      tags: [identity]
+      operationId: enableUser
+      responses:
+        "200":
+          description: Enabled user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /v1/devices:
+    get:
+      tags: [identity]
+      operationId: listDevices
+      summary: Installed desktop apps of the account
+      responses:
+        "200":
+          description: Devices
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceList"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/devices/{deviceId}/revoke:
+    parameters:
+      - $ref: "#/components/parameters/DeviceId"
+    post:
+      tags: [identity]
+      operationId: revokeDevice
+      summary: Revoke a lost or retired device (ADR-07)
+      responses:
+        "200":
+          description: Revoked device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/devices/{deviceId}/number-blocks:
+    parameters:
+      - $ref: "#/components/parameters/DeviceId"
+    post:
+      tags: [identity]
+      operationId: reserveNumberBlock
+      summary: Reserve a block of service order numbers for offline use (RN-04)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NumberBlockRequest"
+      responses:
+        "201":
+          description: Reserved block
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NumberBlock"
+        default:
+          $ref: "#/components/responses/Problem"
+
 components:
   securitySchemes:
     bearerAuth:
@@ -55,6 +455,27 @@ components:
       bearerFormat: JWT
 
   parameters:
+    BranchId:
+      name: branchId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    DeviceId:
+      name: deviceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
     BranchHeader:
       name: X-Branch-ID
       in: header
@@ -131,3 +552,518 @@ components:
           type: string
         message:
           type: string
+
+    Role:
+      type: string
+      enum: [owner, attendant, technician]
+
+    Grant:
+      type: object
+      description: A role held by a user. Owners have a null branch_id (all branches).
+      required: [branch_id, role]
+      properties:
+        branch_id:
+          type: string
+          format: uuid
+          nullable: true
+        role:
+          $ref: "#/components/schemas/Role"
+
+    SignupRequest:
+      type: object
+      required: [account, branch, owner]
+      properties:
+        account:
+          type: object
+          required: [trade_name]
+          properties:
+            trade_name:
+              type: string
+              minLength: 1
+              maxLength: 120
+            document:
+              type: string
+              maxLength: 20
+              description: CPF or CNPJ, digits only.
+        branch:
+          type: object
+          required: [name, os_prefix]
+          properties:
+            name:
+              type: string
+              minLength: 1
+              maxLength: 120
+            os_prefix:
+              $ref: "#/components/schemas/OSPrefix"
+            timezone:
+              type: string
+              example: America/Sao_Paulo
+        owner:
+          type: object
+          required: [name, email, password]
+          properties:
+            name:
+              type: string
+              minLength: 1
+              maxLength: 120
+            email:
+              type: string
+              format: email
+              maxLength: 254
+            password:
+              $ref: "#/components/schemas/Password"
+
+    Password:
+      type: string
+      minLength: 8
+      maxLength: 128
+
+    OSPrefix:
+      type: string
+      pattern: "^[A-Z0-9]{2,6}$"
+      description: Prefix of the branch's service order numbers (e.g. MAT in MAT-000123).
+      example: MAT
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+        device:
+          $ref: "#/components/schemas/DeviceRegistration"
+
+    DeviceRegistration:
+      type: object
+      required: [id, branch_id, name, platform]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: UUID generated by the app on first run.
+        branch_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+          example: Balcão 1
+        platform:
+          $ref: "#/components/schemas/DevicePlatform"
+
+    DevicePlatform:
+      type: string
+      enum: [windows, macos, linux]
+
+    RefreshRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token:
+          type: string
+          minLength: 1
+          maxLength: 256
+
+    AcceptInvitationRequest:
+      type: object
+      required: [token, password]
+      properties:
+        token:
+          type: string
+          minLength: 1
+          maxLength: 256
+        password:
+          $ref: "#/components/schemas/Password"
+
+    Session:
+      type: object
+      required: [access_token, token_type, expires_in, refresh_token, refresh_expires_at, user, account]
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+          description: Access token lifetime in seconds.
+        refresh_token:
+          type: string
+        refresh_expires_at:
+          type: string
+          format: date-time
+        device_id:
+          type: string
+          format: uuid
+          nullable: true
+        user:
+          $ref: "#/components/schemas/User"
+        account:
+          $ref: "#/components/schemas/Account"
+
+    Me:
+      type: object
+      required: [user, account, branches]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        account:
+          $ref: "#/components/schemas/Account"
+        branches:
+          type: array
+          items:
+            $ref: "#/components/schemas/Branch"
+        device_id:
+          type: string
+          format: uuid
+          nullable: true
+
+    AccountStatus:
+      type: string
+      enum: [trial, active, delinquent, suspended, closed]
+
+    Account:
+      type: object
+      required: [id, trade_name, niche, status, created_at, updated_at, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        trade_name:
+          type: string
+        document:
+          type: string
+          nullable: true
+        niche:
+          type: string
+        status:
+          $ref: "#/components/schemas/AccountStatus"
+        trial_ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+
+    AccountUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        trade_name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        document:
+          type: string
+          maxLength: 20
+
+    DiagnosticFee:
+      type: object
+      required: [enabled, amount_cents, deduct_on_approval]
+      properties:
+        enabled:
+          type: boolean
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        deduct_on_approval:
+          type: boolean
+          description: Whether the fee is deducted from the service when the quote is approved (RN-13).
+
+    BranchSettings:
+      type: object
+      description: Per-branch rules (RF-40). Defaults follow the requirements document.
+      required:
+        - diagnostic_fee
+        - quote_validity_days
+        - default_warranty_days
+        - pickup_reminder_days
+        - abandonment_days
+        - storage_fee_enabled
+        - allow_negative_stock
+        - technician_can_open_and_deliver
+        - attendant_max_discount_percent
+        - terms
+      properties:
+        diagnostic_fee:
+          $ref: "#/components/schemas/DiagnosticFee"
+        quote_validity_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          description: RN-09 (default 7).
+        default_warranty_days:
+          type: integer
+          minimum: 0
+          maximum: 3650
+          description: RN-18 (default 90).
+        pickup_reminder_days:
+          type: array
+          maxItems: 10
+          items:
+            type: integer
+            minimum: 1
+            maximum: 3650
+          description: RN-16 (default 7, 15 and 30).
+        abandonment_days:
+          type: integer
+          minimum: 1
+          maximum: 7300
+          description: RN-16 (default 1095, three years).
+        storage_fee_enabled:
+          type: boolean
+          description: RN-17.
+        allow_negative_stock:
+          type: boolean
+          description: RN-21.
+        technician_can_open_and_deliver:
+          type: boolean
+          description: Permission matrix, "Abrir e entregar OS" for technicians.
+        attendant_max_discount_percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: RN-12. Discounts above this need the owner.
+        terms:
+          type: string
+          maxLength: 20000
+          description: Terms printed on the entry receipt (RN-06).
+
+    Branch:
+      type: object
+      required: [id, name, os_prefix, timezone, settings, created_at, updated_at, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        os_prefix:
+          type: string
+        timezone:
+          type: string
+        settings:
+          $ref: "#/components/schemas/BranchSettings"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+
+    BranchCreate:
+      type: object
+      required: [name, os_prefix]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        os_prefix:
+          $ref: "#/components/schemas/OSPrefix"
+        timezone:
+          type: string
+        settings:
+          $ref: "#/components/schemas/BranchSettings"
+
+    BranchUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        os_prefix:
+          $ref: "#/components/schemas/OSPrefix"
+        timezone:
+          type: string
+
+    BranchList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Branch"
+
+    UserStatus:
+      type: string
+      enum: [invited, active, disabled]
+
+    User:
+      type: object
+      required: [id, name, email, status, mfa_enabled, grants, created_at, updated_at, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+        status:
+          $ref: "#/components/schemas/UserStatus"
+        mfa_enabled:
+          type: boolean
+        last_login_at:
+          type: string
+          format: date-time
+          nullable: true
+        grants:
+          type: array
+          items:
+            $ref: "#/components/schemas/Grant"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+
+    UserList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+
+    InvitationCreate:
+      type: object
+      required: [name, email, grants]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        grants:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/Grant"
+
+    InvitationCreated:
+      type: object
+      required: [user, invitation_url, expires_at]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        invitation_url:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+
+    GrantsUpdate:
+      type: object
+      required: [grants]
+      properties:
+        grants:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/Grant"
+
+    Device:
+      type: object
+      required: [id, branch_id, name, platform, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        branch_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        platform:
+          $ref: "#/components/schemas/DevicePlatform"
+        last_seen_at:
+          type: string
+          format: date-time
+          nullable: true
+        revoked_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    DeviceList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Device"
+
+    NumberBlockRequest:
+      type: object
+      properties:
+        size:
+          type: integer
+          minimum: 10
+          maximum: 500
+          default: 50
+
+    NumberBlock:
+      type: object
+      required: [id, device_id, branch_id, os_prefix, range_start, range_end, first_number, last_number]
+      properties:
+        id:
+          type: string
+          format: uuid
+        device_id:
+          type: string
+          format: uuid
+        branch_id:
+          type: string
+          format: uuid
+        os_prefix:
+          type: string
+        range_start:
+          type: integer
+          format: int64
+        range_end:
+          type: integer
+          format: int64
+        first_number:
+          type: string
+          example: MAT-000051
+        last_number:
+          type: string
+          example: MAT-000100

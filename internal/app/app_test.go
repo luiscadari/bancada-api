@@ -11,7 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/luiscadari/bancada-api/internal/app"
-	"github.com/luiscadari/bancada-api/internal/platform/config"
+	"github.com/luiscadari/bancada-api/internal/apptest"
 	"github.com/luiscadari/bancada-api/internal/platform/testdb"
 )
 
@@ -21,11 +21,7 @@ func TestHealthAndMigrations(t *testing.T) {
 	require.NoError(t, err)
 	t.Cleanup(func() { _ = env.Stop(ctx) })
 
-	a, err := app.New(config.Config{
-		DatabaseURL:       env.AppDSN,
-		SystemDatabaseURL: env.SystemDSN,
-		JWTSecret:         "test-secret-test-secret-test-secret",
-	})
+	a, err := app.New(apptest.Config(env))
 	require.NoError(t, err)
 	t.Cleanup(a.Close)
 

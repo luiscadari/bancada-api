@@ -8,11 +8,14 @@ import (
 	"gorm.io/gorm"
 
 	"github.com/luiscadari/bancada-api/internal/api/gen"
+	"github.com/luiscadari/bancada-api/internal/identity"
+	"github.com/luiscadari/bancada-api/internal/platform/reqctx"
 )
 
 // Server implements gen.StrictServerInterface by embedding the module handlers.
 type Server struct {
 	Health
+	*identity.Handler
 }
 
 var _ gen.StrictServerInterface = (*Server)(nil)
@@ -29,7 +32,7 @@ func (h Health) GetHealthz(context.Context, gen.GetHealthzRequestObject) (gen.Ge
 func (h Health) GetReadyz(ctx context.Context, _ gen.GetReadyzRequestObject) (gen.GetReadyzResponseObject, error) {
 	sqlDB, err := h.DB.DB()
 	if err == nil {
-		err = sqlDB.PingContext(ctx)
+		err = sqlDB.PingContext(reqctx.Unwrap(ctx))
 	}
 	if err != nil {
 		return gen.GetReadyzdefaultApplicationProblemPlusJSONResponse{

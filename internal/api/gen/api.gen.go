@@ -8,17 +8,255 @@ import (
 	"compress/flate"
 	"context"
 	"encoding/base64"
+	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"net/url"
 	"path"
 	"strings"
+	"time"
 
 	"github.com/getkin/kin-openapi/openapi3"
 	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
 	"github.com/oapi-codegen/runtime"
 	openapi_types "github.com/oapi-codegen/runtime/types"
 )
+
+// Defines values for AccountStatus.
+const (
+	AccountStatusActive     AccountStatus = "active"
+	AccountStatusClosed     AccountStatus = "closed"
+	AccountStatusDelinquent AccountStatus = "delinquent"
+	AccountStatusSuspended  AccountStatus = "suspended"
+	AccountStatusTrial      AccountStatus = "trial"
+)
+
+// Valid indicates whether the value is a known member of the AccountStatus enum.
+func (e AccountStatus) Valid() bool {
+	switch e {
+	case AccountStatusActive:
+		return true
+	case AccountStatusClosed:
+		return true
+	case AccountStatusDelinquent:
+		return true
+	case AccountStatusSuspended:
+		return true
+	case AccountStatusTrial:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for DevicePlatform.
+const (
+	Linux   DevicePlatform = "linux"
+	Macos   DevicePlatform = "macos"
+	Windows DevicePlatform = "windows"
+)
+
+// Valid indicates whether the value is a known member of the DevicePlatform enum.
+func (e DevicePlatform) Valid() bool {
+	switch e {
+	case Linux:
+		return true
+	case Macos:
+		return true
+	case Windows:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Role.
+const (
+	Attendant  Role = "attendant"
+	Owner      Role = "owner"
+	Technician Role = "technician"
+)
+
+// Valid indicates whether the value is a known member of the Role enum.
+func (e Role) Valid() bool {
+	switch e {
+	case Attendant:
+		return true
+	case Owner:
+		return true
+	case Technician:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for UserStatus.
+const (
+	UserStatusActive   UserStatus = "active"
+	UserStatusDisabled UserStatus = "disabled"
+	UserStatusInvited  UserStatus = "invited"
+)
+
+// Valid indicates whether the value is a known member of the UserStatus enum.
+func (e UserStatus) Valid() bool {
+	switch e {
+	case UserStatusActive:
+		return true
+	case UserStatusDisabled:
+		return true
+	case UserStatusInvited:
+		return true
+	default:
+		return false
+	}
+}
+
+// AcceptInvitationRequest defines model for AcceptInvitationRequest.
+type AcceptInvitationRequest struct {
+	Password Password `json:"password"`
+	Token    string   `json:"token"`
+}
+
+// Account defines model for Account.
+type Account struct {
+	CreatedAt   time.Time          `json:"created_at"`
+	Document    *string            `json:"document"`
+	Id          openapi_types.UUID `json:"id"`
+	Niche       string             `json:"niche"`
+	Status      AccountStatus      `json:"status"`
+	TradeName   string             `json:"trade_name"`
+	TrialEndsAt *time.Time         `json:"trial_ends_at"`
+	UpdatedAt   time.Time          `json:"updated_at"`
+	Version     int64              `json:"version"`
+}
+
+// AccountStatus defines model for AccountStatus.
+type AccountStatus string
+
+// AccountUpdate defines model for AccountUpdate.
+type AccountUpdate struct {
+	Document  *string `json:"document,omitempty"`
+	TradeName *string `json:"trade_name,omitempty"`
+}
+
+// Branch defines model for Branch.
+type Branch struct {
+	CreatedAt time.Time          `json:"created_at"`
+	Id        openapi_types.UUID `json:"id"`
+	Name      string             `json:"name"`
+	OsPrefix  string             `json:"os_prefix"`
+
+	// Settings Per-branch rules (RF-40). Defaults follow the requirements document.
+	Settings  BranchSettings `json:"settings"`
+	Timezone  string         `json:"timezone"`
+	UpdatedAt time.Time      `json:"updated_at"`
+	Version   int64          `json:"version"`
+}
+
+// BranchCreate defines model for BranchCreate.
+type BranchCreate struct {
+	Id   *openapi_types.UUID `json:"id,omitempty"`
+	Name string              `json:"name"`
+
+	// OsPrefix Prefix of the branch's service order numbers (e.g. MAT in MAT-000123).
+	//
+	// Example: MAT
+	OsPrefix OSPrefix `json:"os_prefix"`
+
+	// Settings Per-branch rules (RF-40). Defaults follow the requirements document.
+	Settings *BranchSettings `json:"settings,omitempty"`
+	Timezone *string         `json:"timezone,omitempty"`
+}
+
+// BranchList defines model for BranchList.
+type BranchList struct {
+	Items []Branch `json:"items"`
+}
+
+// BranchSettings Per-branch rules (RF-40). Defaults follow the requirements document.
+type BranchSettings struct {
+	// AbandonmentDays RN-16 (default 1095, three years).
+	AbandonmentDays int `json:"abandonment_days"`
+
+	// AllowNegativeStock RN-21.
+	AllowNegativeStock bool `json:"allow_negative_stock"`
+
+	// AttendantMaxDiscountPercent RN-12. Discounts above this need the owner.
+	AttendantMaxDiscountPercent int `json:"attendant_max_discount_percent"`
+
+	// DefaultWarrantyDays RN-18 (default 90).
+	DefaultWarrantyDays int           `json:"default_warranty_days"`
+	DiagnosticFee       DiagnosticFee `json:"diagnostic_fee"`
+
+	// PickupReminderDays RN-16 (default 7, 15 and 30).
+	PickupReminderDays []int `json:"pickup_reminder_days"`
+
+	// QuoteValidityDays RN-09 (default 7).
+	QuoteValidityDays int `json:"quote_validity_days"`
+
+	// StorageFeeEnabled RN-17.
+	StorageFeeEnabled bool `json:"storage_fee_enabled"`
+
+	// TechnicianCanOpenAndDeliver Permission matrix, "Abrir e entregar OS" for technicians.
+	TechnicianCanOpenAndDeliver bool `json:"technician_can_open_and_deliver"`
+
+	// Terms Terms printed on the entry receipt (RN-06).
+	Terms string `json:"terms"`
+}
+
+// BranchUpdate defines model for BranchUpdate.
+type BranchUpdate struct {
+	Name *string `json:"name,omitempty"`
+
+	// OsPrefix Prefix of the branch's service order numbers (e.g. MAT in MAT-000123).
+	//
+	// Example: MAT
+	OsPrefix *OSPrefix `json:"os_prefix,omitempty"`
+	Timezone *string   `json:"timezone,omitempty"`
+}
+
+// Device defines model for Device.
+type Device struct {
+	BranchId   openapi_types.UUID `json:"branch_id"`
+	CreatedAt  time.Time          `json:"created_at"`
+	Id         openapi_types.UUID `json:"id"`
+	LastSeenAt *time.Time         `json:"last_seen_at"`
+	Name       string             `json:"name"`
+	Platform   DevicePlatform     `json:"platform"`
+	RevokedAt  *time.Time         `json:"revoked_at"`
+}
+
+// DeviceList defines model for DeviceList.
+type DeviceList struct {
+	Items []Device `json:"items"`
+}
+
+// DevicePlatform defines model for DevicePlatform.
+type DevicePlatform string
+
+// DeviceRegistration defines model for DeviceRegistration.
+type DeviceRegistration struct {
+	BranchId openapi_types.UUID `json:"branch_id"`
+
+	// Id UUID generated by the app on first run.
+	Id openapi_types.UUID `json:"id"`
+
+	// Name Example: Balcão 1
+	Name     string         `json:"name"`
+	Platform DevicePlatform `json:"platform"`
+}
+
+// DiagnosticFee defines model for DiagnosticFee.
+type DiagnosticFee struct {
+	AmountCents int64 `json:"amount_cents"`
+
+	// DeductOnApproval Whether the fee is deducted from the service when the quote is approved (RN-13).
+	DeductOnApproval bool `json:"deduct_on_approval"`
+	Enabled          bool `json:"enabled"`
+}
 
 // FieldError defines model for FieldError.
 type FieldError struct {
@@ -26,11 +264,80 @@ type FieldError struct {
 	Message string `json:"message"`
 }
 
+// Grant A role held by a user. Owners have a null branch_id (all branches).
+type Grant struct {
+	BranchId *openapi_types.UUID `json:"branch_id"`
+	Role     Role                `json:"role"`
+}
+
+// GrantsUpdate defines model for GrantsUpdate.
+type GrantsUpdate struct {
+	Grants []Grant `json:"grants"`
+}
+
 // HealthStatus defines model for HealthStatus.
 type HealthStatus struct {
 	// Status Example: ok
 	Status string `json:"status"`
 }
+
+// InvitationCreate defines model for InvitationCreate.
+type InvitationCreate struct {
+	Email  openapi_types.Email `json:"email"`
+	Grants []Grant             `json:"grants"`
+	Name   string              `json:"name"`
+}
+
+// InvitationCreated defines model for InvitationCreated.
+type InvitationCreated struct {
+	ExpiresAt     time.Time `json:"expires_at"`
+	InvitationUrl string    `json:"invitation_url"`
+	User          User      `json:"user"`
+}
+
+// LoginRequest defines model for LoginRequest.
+type LoginRequest struct {
+	Device   *DeviceRegistration `json:"device,omitempty"`
+	Email    openapi_types.Email `json:"email"`
+	Password string              `json:"password"`
+}
+
+// Me defines model for Me.
+type Me struct {
+	Account  Account             `json:"account"`
+	Branches []Branch            `json:"branches"`
+	DeviceId *openapi_types.UUID `json:"device_id"`
+	User     User                `json:"user"`
+}
+
+// NumberBlock defines model for NumberBlock.
+type NumberBlock struct {
+	BranchId openapi_types.UUID `json:"branch_id"`
+	DeviceId openapi_types.UUID `json:"device_id"`
+
+	// FirstNumber Example: MAT-000051
+	FirstNumber string             `json:"first_number"`
+	Id          openapi_types.UUID `json:"id"`
+
+	// LastNumber Example: MAT-000100
+	LastNumber string `json:"last_number"`
+	OsPrefix   string `json:"os_prefix"`
+	RangeEnd   int64  `json:"range_end"`
+	RangeStart int64  `json:"range_start"`
+}
+
+// NumberBlockRequest defines model for NumberBlockRequest.
+type NumberBlockRequest struct {
+	Size *int `json:"size,omitempty"`
+}
+
+// OSPrefix Prefix of the branch's service order numbers (e.g. MAT in MAT-000123).
+//
+// Example: MAT
+type OSPrefix = string
+
+// Password defines model for Password.
+type Password = string
 
 // Problem RFC 9457 problem details.
 type Problem struct {
@@ -50,14 +357,130 @@ type Problem struct {
 	Type string `json:"type"`
 }
 
+// RefreshRequest defines model for RefreshRequest.
+type RefreshRequest struct {
+	RefreshToken string `json:"refresh_token"`
+}
+
+// Role defines model for Role.
+type Role string
+
+// Session defines model for Session.
+type Session struct {
+	AccessToken string              `json:"access_token"`
+	Account     Account             `json:"account"`
+	DeviceId    *openapi_types.UUID `json:"device_id"`
+
+	// ExpiresIn Access token lifetime in seconds.
+	ExpiresIn        int       `json:"expires_in"`
+	RefreshExpiresAt time.Time `json:"refresh_expires_at"`
+	RefreshToken     string    `json:"refresh_token"`
+
+	// TokenType Example: Bearer
+	TokenType string `json:"token_type"`
+	User      User   `json:"user"`
+}
+
+// SignupRequest defines model for SignupRequest.
+type SignupRequest struct {
+	Account struct {
+		// Document CPF or CNPJ, digits only.
+		Document  *string `json:"document,omitempty"`
+		TradeName string  `json:"trade_name"`
+	} `json:"account"`
+	Branch struct {
+		Name string `json:"name"`
+
+		// OsPrefix Prefix of the branch's service order numbers (e.g. MAT in MAT-000123).
+		//
+		// Example: MAT
+		OsPrefix OSPrefix `json:"os_prefix"`
+
+		// Timezone Example: America/Sao_Paulo
+		Timezone *string `json:"timezone,omitempty"`
+	} `json:"branch"`
+	Owner struct {
+		Email    openapi_types.Email `json:"email"`
+		Name     string              `json:"name"`
+		Password Password            `json:"password"`
+	} `json:"owner"`
+}
+
+// User defines model for User.
+type User struct {
+	CreatedAt   time.Time          `json:"created_at"`
+	Email       string             `json:"email"`
+	Grants      []Grant            `json:"grants"`
+	Id          openapi_types.UUID `json:"id"`
+	LastLoginAt *time.Time         `json:"last_login_at"`
+	MfaEnabled  bool               `json:"mfa_enabled"`
+	Name        string             `json:"name"`
+	Status      UserStatus         `json:"status"`
+	UpdatedAt   time.Time          `json:"updated_at"`
+	Version     int64              `json:"version"`
+}
+
+// UserList defines model for UserList.
+type UserList struct {
+	Items []User `json:"items"`
+}
+
+// UserStatus defines model for UserStatus.
+type UserStatus string
+
 // BranchHeader defines model for BranchHeader.
 type BranchHeader = openapi_types.UUID
+
+// BranchId defines model for BranchId.
+type BranchId = openapi_types.UUID
 
 // Cursor defines model for Cursor.
 type Cursor = string
 
+// DeviceId defines model for DeviceId.
+type DeviceId = openapi_types.UUID
+
 // Limit defines model for Limit.
 type Limit = int
+
+// UserId defines model for UserId.
+type UserId = openapi_types.UUID
+
+// UpdateAccountJSONRequestBody defines body for UpdateAccount for application/json ContentType.
+type UpdateAccountJSONRequestBody = AccountUpdate
+
+// AcceptInvitationJSONRequestBody defines body for AcceptInvitation for application/json ContentType.
+type AcceptInvitationJSONRequestBody = AcceptInvitationRequest
+
+// LoginJSONRequestBody defines body for Login for application/json ContentType.
+type LoginJSONRequestBody = LoginRequest
+
+// LogoutJSONRequestBody defines body for Logout for application/json ContentType.
+type LogoutJSONRequestBody = RefreshRequest
+
+// RefreshSessionJSONRequestBody defines body for RefreshSession for application/json ContentType.
+type RefreshSessionJSONRequestBody = RefreshRequest
+
+// SignupJSONRequestBody defines body for Signup for application/json ContentType.
+type SignupJSONRequestBody = SignupRequest
+
+// CreateBranchJSONRequestBody defines body for CreateBranch for application/json ContentType.
+type CreateBranchJSONRequestBody = BranchCreate
+
+// UpdateBranchJSONRequestBody defines body for UpdateBranch for application/json ContentType.
+type UpdateBranchJSONRequestBody = BranchUpdate
+
+// UpdateBranchSettingsJSONRequestBody defines body for UpdateBranchSettings for application/json ContentType.
+type UpdateBranchSettingsJSONRequestBody = BranchSettings
+
+// ReserveNumberBlockJSONRequestBody defines body for ReserveNumberBlock for application/json ContentType.
+type ReserveNumberBlockJSONRequestBody = NumberBlockRequest
+
+// InviteUserJSONRequestBody defines body for InviteUser for application/json ContentType.
+type InviteUserJSONRequestBody = InvitationCreate
+
+// UpdateUserGrantsJSONRequestBody defines body for UpdateUserGrants for application/json ContentType.
+type UpdateUserGrantsJSONRequestBody = GrantsUpdate
 
 // ServerInterface represents all server handlers.
 type ServerInterface interface {
@@ -67,6 +490,72 @@ type ServerInterface interface {
 	// GetReadyz Readiness probe (database reachable)
 	// (GET /readyz)
 	GetReadyz(c *gin.Context)
+
+	// (GET /v1/account)
+	GetAccount(c *gin.Context)
+
+	// (PATCH /v1/account)
+	UpdateAccount(c *gin.Context)
+	// AcceptInvitation Accept an invitation by choosing a password (RF-41)
+	// (POST /v1/auth/accept-invitation)
+	AcceptInvitation(c *gin.Context)
+	// Login Sign in with email and password
+	// (POST /v1/auth/login)
+	Login(c *gin.Context)
+	// Logout Revoke a refresh token
+	// (POST /v1/auth/logout)
+	Logout(c *gin.Context)
+	// RefreshSession Exchange a refresh token for a new session (rotation)
+	// (POST /v1/auth/refresh)
+	RefreshSession(c *gin.Context)
+	// Signup Create an account (trial) with its first branch and owner (RF-S01)
+	// (POST /v1/auth/signup)
+	Signup(c *gin.Context)
+	// ListBranches Branches the current user can access
+	// (GET /v1/branches)
+	ListBranches(c *gin.Context)
+
+	// (POST /v1/branches)
+	CreateBranch(c *gin.Context)
+
+	// (GET /v1/branches/{branchId})
+	GetBranch(c *gin.Context, branchId BranchId)
+
+	// (PATCH /v1/branches/{branchId})
+	UpdateBranch(c *gin.Context, branchId BranchId)
+	// UpdateBranchSettings Replace the branch settings (RF-40)
+	// (PUT /v1/branches/{branchId}/settings)
+	UpdateBranchSettings(c *gin.Context, branchId BranchId)
+	// ListDevices Installed desktop apps of the account
+	// (GET /v1/devices)
+	ListDevices(c *gin.Context)
+	// ReserveNumberBlock Reserve a block of service order numbers for offline use (RN-04)
+	// (POST /v1/devices/{deviceId}/number-blocks)
+	ReserveNumberBlock(c *gin.Context, deviceId DeviceId)
+	// RevokeDevice Revoke a lost or retired device (ADR-07)
+	// (POST /v1/devices/{deviceId}/revoke)
+	RevokeDevice(c *gin.Context, deviceId DeviceId)
+	// GetMe Current user, account, grants and accessible branches
+	// (GET /v1/me)
+	GetMe(c *gin.Context)
+
+	// (GET /v1/users)
+	ListUsers(c *gin.Context)
+	// InviteUser Invite a user by email with roles per branch (RF-41)
+	// (POST /v1/users/invitations)
+	InviteUser(c *gin.Context)
+
+	// (GET /v1/users/{userId})
+	GetUser(c *gin.Context, userId UserId)
+	// DisableUser Disable a user and end their sessions
+	// (POST /v1/users/{userId}/disable)
+	DisableUser(c *gin.Context, userId UserId)
+
+	// (POST /v1/users/{userId}/enable)
+	EnableUser(c *gin.Context, userId UserId)
+	// UpdateUserGrants Replace the roles and branches of a user
+	// (PUT /v1/users/{userId}/grants)
+	UpdateUserGrants(c *gin.Context, userId UserId)
 }
 
 // ServerInterfaceWrapper converts contexts to parameters.
@@ -104,6 +593,400 @@ func (siw *ServerInterfaceWrapper) GetReadyz(c *gin.Context) {
 	siw.Handler.GetReadyz(c)
 }
 
+// GetAccount operation middleware
+func (siw *ServerInterfaceWrapper) GetAccount(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetAccount(c)
+}
+
+// UpdateAccount operation middleware
+func (siw *ServerInterfaceWrapper) UpdateAccount(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateAccount(c)
+}
+
+// AcceptInvitation operation middleware
+func (siw *ServerInterfaceWrapper) AcceptInvitation(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AcceptInvitation(c)
+}
+
+// Login operation middleware
+func (siw *ServerInterfaceWrapper) Login(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Login(c)
+}
+
+// Logout operation middleware
+func (siw *ServerInterfaceWrapper) Logout(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Logout(c)
+}
+
+// RefreshSession operation middleware
+func (siw *ServerInterfaceWrapper) RefreshSession(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RefreshSession(c)
+}
+
+// Signup operation middleware
+func (siw *ServerInterfaceWrapper) Signup(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.Signup(c)
+}
+
+// ListBranches operation middleware
+func (siw *ServerInterfaceWrapper) ListBranches(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListBranches(c)
+}
+
+// CreateBranch operation middleware
+func (siw *ServerInterfaceWrapper) CreateBranch(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateBranch(c)
+}
+
+// GetBranch operation middleware
+func (siw *ServerInterfaceWrapper) GetBranch(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "branchId" -------------
+	var branchId BranchId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "branchId", c.Param("branchId"), &branchId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter branchId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetBranch(c, branchId)
+}
+
+// UpdateBranch operation middleware
+func (siw *ServerInterfaceWrapper) UpdateBranch(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "branchId" -------------
+	var branchId BranchId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "branchId", c.Param("branchId"), &branchId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter branchId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateBranch(c, branchId)
+}
+
+// UpdateBranchSettings operation middleware
+func (siw *ServerInterfaceWrapper) UpdateBranchSettings(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "branchId" -------------
+	var branchId BranchId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "branchId", c.Param("branchId"), &branchId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter branchId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateBranchSettings(c, branchId)
+}
+
+// ListDevices operation middleware
+func (siw *ServerInterfaceWrapper) ListDevices(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListDevices(c)
+}
+
+// ReserveNumberBlock operation middleware
+func (siw *ServerInterfaceWrapper) ReserveNumberBlock(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "deviceId" -------------
+	var deviceId DeviceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "deviceId", c.Param("deviceId"), &deviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter deviceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ReserveNumberBlock(c, deviceId)
+}
+
+// RevokeDevice operation middleware
+func (siw *ServerInterfaceWrapper) RevokeDevice(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "deviceId" -------------
+	var deviceId DeviceId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "deviceId", c.Param("deviceId"), &deviceId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter deviceId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RevokeDevice(c, deviceId)
+}
+
+// GetMe operation middleware
+func (siw *ServerInterfaceWrapper) GetMe(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetMe(c)
+}
+
+// ListUsers operation middleware
+func (siw *ServerInterfaceWrapper) ListUsers(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListUsers(c)
+}
+
+// InviteUser operation middleware
+func (siw *ServerInterfaceWrapper) InviteUser(c *gin.Context) {
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.InviteUser(c)
+}
+
+// GetUser operation middleware
+func (siw *ServerInterfaceWrapper) GetUser(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "userId" -------------
+	var userId UserId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userId", c.Param("userId"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetUser(c, userId)
+}
+
+// DisableUser operation middleware
+func (siw *ServerInterfaceWrapper) DisableUser(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "userId" -------------
+	var userId UserId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userId", c.Param("userId"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DisableUser(c, userId)
+}
+
+// EnableUser operation middleware
+func (siw *ServerInterfaceWrapper) EnableUser(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "userId" -------------
+	var userId UserId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userId", c.Param("userId"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.EnableUser(c, userId)
+}
+
+// UpdateUserGrants operation middleware
+func (siw *ServerInterfaceWrapper) UpdateUserGrants(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "userId" -------------
+	var userId UserId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "userId", c.Param("userId"), &userId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter userId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateUserGrants(c, userId)
+}
+
 // GinServerOptions provides options for the Gin server.
 type GinServerOptions struct {
 	BaseURL      string
@@ -133,6 +1016,28 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 
 	router.GET(options.BaseURL+"/healthz", wrapper.GetHealthz)
 	router.GET(options.BaseURL+"/readyz", wrapper.GetReadyz)
+	router.POST(options.BaseURL+"/v1/auth/signup", wrapper.Signup)
+	router.POST(options.BaseURL+"/v1/auth/login", wrapper.Login)
+	router.POST(options.BaseURL+"/v1/auth/refresh", wrapper.RefreshSession)
+	router.POST(options.BaseURL+"/v1/auth/logout", wrapper.Logout)
+	router.POST(options.BaseURL+"/v1/auth/accept-invitation", wrapper.AcceptInvitation)
+	router.GET(options.BaseURL+"/v1/me", wrapper.GetMe)
+	router.GET(options.BaseURL+"/v1/account", wrapper.GetAccount)
+	router.PATCH(options.BaseURL+"/v1/account", wrapper.UpdateAccount)
+	router.GET(options.BaseURL+"/v1/branches", wrapper.ListBranches)
+	router.POST(options.BaseURL+"/v1/branches", wrapper.CreateBranch)
+	router.GET(options.BaseURL+"/v1/branches/:branchId", wrapper.GetBranch)
+	router.PATCH(options.BaseURL+"/v1/branches/:branchId", wrapper.UpdateBranch)
+	router.PUT(options.BaseURL+"/v1/branches/:branchId/settings", wrapper.UpdateBranchSettings)
+	router.GET(options.BaseURL+"/v1/users", wrapper.ListUsers)
+	router.POST(options.BaseURL+"/v1/users/invitations", wrapper.InviteUser)
+	router.GET(options.BaseURL+"/v1/users/:userId", wrapper.GetUser)
+	router.PUT(options.BaseURL+"/v1/users/:userId/grants", wrapper.UpdateUserGrants)
+	router.POST(options.BaseURL+"/v1/users/:userId/disable", wrapper.DisableUser)
+	router.POST(options.BaseURL+"/v1/users/:userId/enable", wrapper.EnableUser)
+	router.GET(options.BaseURL+"/v1/devices", wrapper.ListDevices)
+	router.POST(options.BaseURL+"/v1/devices/:deviceId/revoke", wrapper.RevokeDevice)
+	router.POST(options.BaseURL+"/v1/devices/:deviceId/number-blocks", wrapper.ReserveNumberBlock)
 }
 
 type ProblemApplicationProblemPlusJSONResponse Problem
@@ -196,6 +1101,857 @@ func (response GetReadyzdefaultApplicationProblemPlusJSONResponse) VisitGetReady
 	return err
 }
 
+type GetAccountRequestObject struct {
+}
+
+type GetAccountResponseObject interface {
+	VisitGetAccountResponse(w http.ResponseWriter) error
+}
+
+type GetAccount200JSONResponse Account
+
+func (response GetAccount200JSONResponse) VisitGetAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetAccountdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetAccountdefaultApplicationProblemPlusJSONResponse) VisitGetAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateAccountRequestObject struct {
+	Body *UpdateAccountJSONRequestBody
+}
+
+type UpdateAccountResponseObject interface {
+	VisitUpdateAccountResponse(w http.ResponseWriter) error
+}
+
+type UpdateAccount200JSONResponse Account
+
+func (response UpdateAccount200JSONResponse) VisitUpdateAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateAccountdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateAccountdefaultApplicationProblemPlusJSONResponse) VisitUpdateAccountResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitationRequestObject struct {
+	Body *AcceptInvitationJSONRequestBody
+}
+
+type AcceptInvitationResponseObject interface {
+	VisitAcceptInvitationResponse(w http.ResponseWriter) error
+}
+
+type AcceptInvitation200JSONResponse Session
+
+func (response AcceptInvitation200JSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AcceptInvitationdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AcceptInvitationdefaultApplicationProblemPlusJSONResponse) VisitAcceptInvitationResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type LoginRequestObject struct {
+	Body *LoginJSONRequestBody
+}
+
+type LoginResponseObject interface {
+	VisitLoginResponse(w http.ResponseWriter) error
+}
+
+type Login200JSONResponse Session
+
+func (response Login200JSONResponse) VisitLoginResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type LogindefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response LogindefaultApplicationProblemPlusJSONResponse) VisitLoginResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type LogoutRequestObject struct {
+	Body *LogoutJSONRequestBody
+}
+
+type LogoutResponseObject interface {
+	VisitLogoutResponse(w http.ResponseWriter) error
+}
+
+type Logout204Response struct {
+}
+
+func (response Logout204Response) VisitLogoutResponse(w http.ResponseWriter) error {
+	w.WriteHeader(204)
+	return nil
+}
+
+type LogoutdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response LogoutdefaultApplicationProblemPlusJSONResponse) VisitLogoutResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RefreshSessionRequestObject struct {
+	Body *RefreshSessionJSONRequestBody
+}
+
+type RefreshSessionResponseObject interface {
+	VisitRefreshSessionResponse(w http.ResponseWriter) error
+}
+
+type RefreshSession200JSONResponse Session
+
+func (response RefreshSession200JSONResponse) VisitRefreshSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RefreshSessiondefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RefreshSessiondefaultApplicationProblemPlusJSONResponse) VisitRefreshSessionResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SignupRequestObject struct {
+	Body *SignupJSONRequestBody
+}
+
+type SignupResponseObject interface {
+	VisitSignupResponse(w http.ResponseWriter) error
+}
+
+type Signup201JSONResponse Session
+
+func (response Signup201JSONResponse) VisitSignupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SignupdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response SignupdefaultApplicationProblemPlusJSONResponse) VisitSignupResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListBranchesRequestObject struct {
+}
+
+type ListBranchesResponseObject interface {
+	VisitListBranchesResponse(w http.ResponseWriter) error
+}
+
+type ListBranches200JSONResponse BranchList
+
+func (response ListBranches200JSONResponse) VisitListBranchesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListBranchesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListBranchesdefaultApplicationProblemPlusJSONResponse) VisitListBranchesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateBranchRequestObject struct {
+	Body *CreateBranchJSONRequestBody
+}
+
+type CreateBranchResponseObject interface {
+	VisitCreateBranchResponse(w http.ResponseWriter) error
+}
+
+type CreateBranch201JSONResponse Branch
+
+func (response CreateBranch201JSONResponse) VisitCreateBranchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateBranchdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateBranchdefaultApplicationProblemPlusJSONResponse) VisitCreateBranchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetBranchRequestObject struct {
+	BranchId BranchId `json:"branchId"`
+}
+
+type GetBranchResponseObject interface {
+	VisitGetBranchResponse(w http.ResponseWriter) error
+}
+
+type GetBranch200JSONResponse Branch
+
+func (response GetBranch200JSONResponse) VisitGetBranchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetBranchdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetBranchdefaultApplicationProblemPlusJSONResponse) VisitGetBranchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateBranchRequestObject struct {
+	BranchId BranchId `json:"branchId"`
+	Body     *UpdateBranchJSONRequestBody
+}
+
+type UpdateBranchResponseObject interface {
+	VisitUpdateBranchResponse(w http.ResponseWriter) error
+}
+
+type UpdateBranch200JSONResponse Branch
+
+func (response UpdateBranch200JSONResponse) VisitUpdateBranchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateBranchdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateBranchdefaultApplicationProblemPlusJSONResponse) VisitUpdateBranchResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateBranchSettingsRequestObject struct {
+	BranchId BranchId `json:"branchId"`
+	Body     *UpdateBranchSettingsJSONRequestBody
+}
+
+type UpdateBranchSettingsResponseObject interface {
+	VisitUpdateBranchSettingsResponse(w http.ResponseWriter) error
+}
+
+type UpdateBranchSettings200JSONResponse Branch
+
+func (response UpdateBranchSettings200JSONResponse) VisitUpdateBranchSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateBranchSettingsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateBranchSettingsdefaultApplicationProblemPlusJSONResponse) VisitUpdateBranchSettingsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListDevicesRequestObject struct {
+}
+
+type ListDevicesResponseObject interface {
+	VisitListDevicesResponse(w http.ResponseWriter) error
+}
+
+type ListDevices200JSONResponse DeviceList
+
+func (response ListDevices200JSONResponse) VisitListDevicesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListDevicesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListDevicesdefaultApplicationProblemPlusJSONResponse) VisitListDevicesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ReserveNumberBlockRequestObject struct {
+	DeviceId DeviceId `json:"deviceId"`
+	Body     *ReserveNumberBlockJSONRequestBody
+}
+
+type ReserveNumberBlockResponseObject interface {
+	VisitReserveNumberBlockResponse(w http.ResponseWriter) error
+}
+
+type ReserveNumberBlock201JSONResponse NumberBlock
+
+func (response ReserveNumberBlock201JSONResponse) VisitReserveNumberBlockResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ReserveNumberBlockdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ReserveNumberBlockdefaultApplicationProblemPlusJSONResponse) VisitReserveNumberBlockResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeDeviceRequestObject struct {
+	DeviceId DeviceId `json:"deviceId"`
+}
+
+type RevokeDeviceResponseObject interface {
+	VisitRevokeDeviceResponse(w http.ResponseWriter) error
+}
+
+type RevokeDevice200JSONResponse Device
+
+func (response RevokeDevice200JSONResponse) VisitRevokeDeviceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevokeDevicedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RevokeDevicedefaultApplicationProblemPlusJSONResponse) VisitRevokeDeviceResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMeRequestObject struct {
+}
+
+type GetMeResponseObject interface {
+	VisitGetMeResponse(w http.ResponseWriter) error
+}
+
+type GetMe200JSONResponse Me
+
+func (response GetMe200JSONResponse) VisitGetMeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetMedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetMedefaultApplicationProblemPlusJSONResponse) VisitGetMeResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListUsersRequestObject struct {
+}
+
+type ListUsersResponseObject interface {
+	VisitListUsersResponse(w http.ResponseWriter) error
+}
+
+type ListUsers200JSONResponse UserList
+
+func (response ListUsers200JSONResponse) VisitListUsersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListUsersdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListUsersdefaultApplicationProblemPlusJSONResponse) VisitListUsersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type InviteUserRequestObject struct {
+	Body *InviteUserJSONRequestBody
+}
+
+type InviteUserResponseObject interface {
+	VisitInviteUserResponse(w http.ResponseWriter) error
+}
+
+type InviteUser201JSONResponse InvitationCreated
+
+func (response InviteUser201JSONResponse) VisitInviteUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type InviteUserdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response InviteUserdefaultApplicationProblemPlusJSONResponse) VisitInviteUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetUserRequestObject struct {
+	UserId UserId `json:"userId"`
+}
+
+type GetUserResponseObject interface {
+	VisitGetUserResponse(w http.ResponseWriter) error
+}
+
+type GetUser200JSONResponse User
+
+func (response GetUser200JSONResponse) VisitGetUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetUserdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetUserdefaultApplicationProblemPlusJSONResponse) VisitGetUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DisableUserRequestObject struct {
+	UserId UserId `json:"userId"`
+}
+
+type DisableUserResponseObject interface {
+	VisitDisableUserResponse(w http.ResponseWriter) error
+}
+
+type DisableUser200JSONResponse User
+
+func (response DisableUser200JSONResponse) VisitDisableUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DisableUserdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DisableUserdefaultApplicationProblemPlusJSONResponse) VisitDisableUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type EnableUserRequestObject struct {
+	UserId UserId `json:"userId"`
+}
+
+type EnableUserResponseObject interface {
+	VisitEnableUserResponse(w http.ResponseWriter) error
+}
+
+type EnableUser200JSONResponse User
+
+func (response EnableUser200JSONResponse) VisitEnableUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type EnableUserdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response EnableUserdefaultApplicationProblemPlusJSONResponse) VisitEnableUserResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateUserGrantsRequestObject struct {
+	UserId UserId `json:"userId"`
+	Body   *UpdateUserGrantsJSONRequestBody
+}
+
+type UpdateUserGrantsResponseObject interface {
+	VisitUpdateUserGrantsResponse(w http.ResponseWriter) error
+}
+
+type UpdateUserGrants200JSONResponse User
+
+func (response UpdateUserGrants200JSONResponse) VisitUpdateUserGrantsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateUserGrantsdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateUserGrantsdefaultApplicationProblemPlusJSONResponse) VisitUpdateUserGrantsResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 // StrictServerInterface represents all server handlers.
 type StrictServerInterface interface {
 	// GetHealthz Liveness probe
@@ -204,6 +1960,72 @@ type StrictServerInterface interface {
 	// GetReadyz Readiness probe (database reachable)
 	// (GET /readyz)
 	GetReadyz(ctx context.Context, request GetReadyzRequestObject) (GetReadyzResponseObject, error)
+
+	// (GET /v1/account)
+	GetAccount(ctx context.Context, request GetAccountRequestObject) (GetAccountResponseObject, error)
+
+	// (PATCH /v1/account)
+	UpdateAccount(ctx context.Context, request UpdateAccountRequestObject) (UpdateAccountResponseObject, error)
+	// AcceptInvitation Accept an invitation by choosing a password (RF-41)
+	// (POST /v1/auth/accept-invitation)
+	AcceptInvitation(ctx context.Context, request AcceptInvitationRequestObject) (AcceptInvitationResponseObject, error)
+	// Login Sign in with email and password
+	// (POST /v1/auth/login)
+	Login(ctx context.Context, request LoginRequestObject) (LoginResponseObject, error)
+	// Logout Revoke a refresh token
+	// (POST /v1/auth/logout)
+	Logout(ctx context.Context, request LogoutRequestObject) (LogoutResponseObject, error)
+	// RefreshSession Exchange a refresh token for a new session (rotation)
+	// (POST /v1/auth/refresh)
+	RefreshSession(ctx context.Context, request RefreshSessionRequestObject) (RefreshSessionResponseObject, error)
+	// Signup Create an account (trial) with its first branch and owner (RF-S01)
+	// (POST /v1/auth/signup)
+	Signup(ctx context.Context, request SignupRequestObject) (SignupResponseObject, error)
+	// ListBranches Branches the current user can access
+	// (GET /v1/branches)
+	ListBranches(ctx context.Context, request ListBranchesRequestObject) (ListBranchesResponseObject, error)
+
+	// (POST /v1/branches)
+	CreateBranch(ctx context.Context, request CreateBranchRequestObject) (CreateBranchResponseObject, error)
+
+	// (GET /v1/branches/{branchId})
+	GetBranch(ctx context.Context, request GetBranchRequestObject) (GetBranchResponseObject, error)
+
+	// (PATCH /v1/branches/{branchId})
+	UpdateBranch(ctx context.Context, request UpdateBranchRequestObject) (UpdateBranchResponseObject, error)
+	// UpdateBranchSettings Replace the branch settings (RF-40)
+	// (PUT /v1/branches/{branchId}/settings)
+	UpdateBranchSettings(ctx context.Context, request UpdateBranchSettingsRequestObject) (UpdateBranchSettingsResponseObject, error)
+	// ListDevices Installed desktop apps of the account
+	// (GET /v1/devices)
+	ListDevices(ctx context.Context, request ListDevicesRequestObject) (ListDevicesResponseObject, error)
+	// ReserveNumberBlock Reserve a block of service order numbers for offline use (RN-04)
+	// (POST /v1/devices/{deviceId}/number-blocks)
+	ReserveNumberBlock(ctx context.Context, request ReserveNumberBlockRequestObject) (ReserveNumberBlockResponseObject, error)
+	// RevokeDevice Revoke a lost or retired device (ADR-07)
+	// (POST /v1/devices/{deviceId}/revoke)
+	RevokeDevice(ctx context.Context, request RevokeDeviceRequestObject) (RevokeDeviceResponseObject, error)
+	// GetMe Current user, account, grants and accessible branches
+	// (GET /v1/me)
+	GetMe(ctx context.Context, request GetMeRequestObject) (GetMeResponseObject, error)
+
+	// (GET /v1/users)
+	ListUsers(ctx context.Context, request ListUsersRequestObject) (ListUsersResponseObject, error)
+	// InviteUser Invite a user by email with roles per branch (RF-41)
+	// (POST /v1/users/invitations)
+	InviteUser(ctx context.Context, request InviteUserRequestObject) (InviteUserResponseObject, error)
+
+	// (GET /v1/users/{userId})
+	GetUser(ctx context.Context, request GetUserRequestObject) (GetUserResponseObject, error)
+	// DisableUser Disable a user and end their sessions
+	// (POST /v1/users/{userId}/disable)
+	DisableUser(ctx context.Context, request DisableUserRequestObject) (DisableUserResponseObject, error)
+
+	// (POST /v1/users/{userId}/enable)
+	EnableUser(ctx context.Context, request EnableUserRequestObject) (EnableUserResponseObject, error)
+	// UpdateUserGrants Replace the roles and branches of a user
+	// (PUT /v1/users/{userId}/grants)
+	UpdateUserGrants(ctx context.Context, request UpdateUserGrantsRequestObject) (UpdateUserGrantsResponseObject, error)
 }
 
 // StrictHandlerFunc and StrictMiddlewareFunc are type aliases rather than
@@ -314,29 +2136,843 @@ func (sh *strictHandler) GetReadyz(ctx *gin.Context) {
 	}
 }
 
+// GetAccount operation middleware
+func (sh *strictHandler) GetAccount(ctx *gin.Context) {
+	var request GetAccountRequestObject
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.GetAccount(ctx, request.(GetAccountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetAccount")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(GetAccountResponseObject); ok {
+		if err := validResponse.VisitGetAccountResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateAccount operation middleware
+func (sh *strictHandler) UpdateAccount(ctx *gin.Context) {
+	var request UpdateAccountRequestObject
+
+	var body UpdateAccountJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.UpdateAccount(ctx, request.(UpdateAccountRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateAccount")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(UpdateAccountResponseObject); ok {
+		if err := validResponse.VisitUpdateAccountResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AcceptInvitation operation middleware
+func (sh *strictHandler) AcceptInvitation(ctx *gin.Context) {
+	var request AcceptInvitationRequestObject
+
+	var body AcceptInvitationJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.AcceptInvitation(ctx, request.(AcceptInvitationRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AcceptInvitation")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(AcceptInvitationResponseObject); ok {
+		if err := validResponse.VisitAcceptInvitationResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Login operation middleware
+func (sh *strictHandler) Login(ctx *gin.Context) {
+	var request LoginRequestObject
+
+	var body LoginJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.Login(ctx, request.(LoginRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Login")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(LoginResponseObject); ok {
+		if err := validResponse.VisitLoginResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Logout operation middleware
+func (sh *strictHandler) Logout(ctx *gin.Context) {
+	var request LogoutRequestObject
+
+	var body LogoutJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.Logout(ctx, request.(LogoutRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Logout")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(LogoutResponseObject); ok {
+		if err := validResponse.VisitLogoutResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RefreshSession operation middleware
+func (sh *strictHandler) RefreshSession(ctx *gin.Context) {
+	var request RefreshSessionRequestObject
+
+	var body RefreshSessionJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.RefreshSession(ctx, request.(RefreshSessionRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RefreshSession")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(RefreshSessionResponseObject); ok {
+		if err := validResponse.VisitRefreshSessionResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// Signup operation middleware
+func (sh *strictHandler) Signup(ctx *gin.Context) {
+	var request SignupRequestObject
+
+	var body SignupJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.Signup(ctx, request.(SignupRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "Signup")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(SignupResponseObject); ok {
+		if err := validResponse.VisitSignupResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListBranches operation middleware
+func (sh *strictHandler) ListBranches(ctx *gin.Context) {
+	var request ListBranchesRequestObject
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.ListBranches(ctx, request.(ListBranchesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListBranches")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(ListBranchesResponseObject); ok {
+		if err := validResponse.VisitListBranchesResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateBranch operation middleware
+func (sh *strictHandler) CreateBranch(ctx *gin.Context) {
+	var request CreateBranchRequestObject
+
+	var body CreateBranchJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.CreateBranch(ctx, request.(CreateBranchRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateBranch")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(CreateBranchResponseObject); ok {
+		if err := validResponse.VisitCreateBranchResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetBranch operation middleware
+func (sh *strictHandler) GetBranch(ctx *gin.Context, branchId BranchId) {
+	var request GetBranchRequestObject
+
+	request.BranchId = branchId
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.GetBranch(ctx, request.(GetBranchRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetBranch")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(GetBranchResponseObject); ok {
+		if err := validResponse.VisitGetBranchResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateBranch operation middleware
+func (sh *strictHandler) UpdateBranch(ctx *gin.Context, branchId BranchId) {
+	var request UpdateBranchRequestObject
+
+	request.BranchId = branchId
+
+	var body UpdateBranchJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.UpdateBranch(ctx, request.(UpdateBranchRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateBranch")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(UpdateBranchResponseObject); ok {
+		if err := validResponse.VisitUpdateBranchResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateBranchSettings operation middleware
+func (sh *strictHandler) UpdateBranchSettings(ctx *gin.Context, branchId BranchId) {
+	var request UpdateBranchSettingsRequestObject
+
+	request.BranchId = branchId
+
+	var body UpdateBranchSettingsJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.UpdateBranchSettings(ctx, request.(UpdateBranchSettingsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateBranchSettings")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(UpdateBranchSettingsResponseObject); ok {
+		if err := validResponse.VisitUpdateBranchSettingsResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListDevices operation middleware
+func (sh *strictHandler) ListDevices(ctx *gin.Context) {
+	var request ListDevicesRequestObject
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.ListDevices(ctx, request.(ListDevicesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListDevices")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(ListDevicesResponseObject); ok {
+		if err := validResponse.VisitListDevicesResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ReserveNumberBlock operation middleware
+func (sh *strictHandler) ReserveNumberBlock(ctx *gin.Context, deviceId DeviceId) {
+	var request ReserveNumberBlockRequestObject
+
+	request.DeviceId = deviceId
+
+	var body ReserveNumberBlockJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		if !errors.Is(err, io.EOF) {
+			sh.options.RequestErrorHandlerFunc(ctx, err)
+			return
+		}
+	} else {
+		request.Body = &body
+	}
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.ReserveNumberBlock(ctx, request.(ReserveNumberBlockRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ReserveNumberBlock")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(ReserveNumberBlockResponseObject); ok {
+		if err := validResponse.VisitReserveNumberBlockResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RevokeDevice operation middleware
+func (sh *strictHandler) RevokeDevice(ctx *gin.Context, deviceId DeviceId) {
+	var request RevokeDeviceRequestObject
+
+	request.DeviceId = deviceId
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.RevokeDevice(ctx, request.(RevokeDeviceRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RevokeDevice")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(RevokeDeviceResponseObject); ok {
+		if err := validResponse.VisitRevokeDeviceResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetMe operation middleware
+func (sh *strictHandler) GetMe(ctx *gin.Context) {
+	var request GetMeRequestObject
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.GetMe(ctx, request.(GetMeRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetMe")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(GetMeResponseObject); ok {
+		if err := validResponse.VisitGetMeResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListUsers operation middleware
+func (sh *strictHandler) ListUsers(ctx *gin.Context) {
+	var request ListUsersRequestObject
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.ListUsers(ctx, request.(ListUsersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListUsers")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(ListUsersResponseObject); ok {
+		if err := validResponse.VisitListUsersResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// InviteUser operation middleware
+func (sh *strictHandler) InviteUser(ctx *gin.Context) {
+	var request InviteUserRequestObject
+
+	var body InviteUserJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.InviteUser(ctx, request.(InviteUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "InviteUser")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(InviteUserResponseObject); ok {
+		if err := validResponse.VisitInviteUserResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetUser operation middleware
+func (sh *strictHandler) GetUser(ctx *gin.Context, userId UserId) {
+	var request GetUserRequestObject
+
+	request.UserId = userId
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.GetUser(ctx, request.(GetUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetUser")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(GetUserResponseObject); ok {
+		if err := validResponse.VisitGetUserResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DisableUser operation middleware
+func (sh *strictHandler) DisableUser(ctx *gin.Context, userId UserId) {
+	var request DisableUserRequestObject
+
+	request.UserId = userId
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.DisableUser(ctx, request.(DisableUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DisableUser")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(DisableUserResponseObject); ok {
+		if err := validResponse.VisitDisableUserResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// EnableUser operation middleware
+func (sh *strictHandler) EnableUser(ctx *gin.Context, userId UserId) {
+	var request EnableUserRequestObject
+
+	request.UserId = userId
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.EnableUser(ctx, request.(EnableUserRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "EnableUser")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(EnableUserResponseObject); ok {
+		if err := validResponse.VisitEnableUserResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateUserGrants operation middleware
+func (sh *strictHandler) UpdateUserGrants(ctx *gin.Context, userId UserId) {
+	var request UpdateUserGrantsRequestObject
+
+	request.UserId = userId
+
+	var body UpdateUserGrantsJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.UpdateUserGrants(ctx, request.(UpdateUserGrantsRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateUserGrants")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(UpdateUserGrantsResponseObject); ok {
+		if err := validResponse.VisitUpdateUserGrantsResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // Base64 encoded, compressed with deflate, json marshaled OpenAPI spec.
 // Stored as a slice of fixed-width chunks rather than one concatenated
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"8Y2pklc+F7Q8XD/8fwAAAP//",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

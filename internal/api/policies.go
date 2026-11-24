@@ -26,12 +26,35 @@ var (
 // operation. Finer rules that depend on data (assigned technician, discount limit,
 // cancel reason) are enforced by the services. Every operation that is not public must
 // be listed here; BuildPolicies fails at startup otherwise.
-var operationRoles = map[string][]string{}
+var operationRoles = map[string][]string{
+	// identity
+	"getMe":                everyone,
+	"getAccount":           everyone,
+	"updateAccount":        ownerOnly,
+	"listBranches":         everyone,
+	"getBranch":            everyone,
+	"createBranch":         ownerOnly,
+	"updateBranch":         ownerOnly,
+	"updateBranchSettings": ownerOnly,
+	"listUsers":            ownerOnly,
+	"getUser":              ownerOnly,
+	"inviteUser":           ownerOnly,
+	"updateUserGrants":     ownerOnly,
+	"disableUser":          ownerOnly,
+	"enableUser":           ownerOnly,
+	"listDevices":          ownerOnly,
+	"revokeDevice":         ownerOnly,
+	"reserveNumberBlock":   everyone,
+}
 
 // BuildPolicies derives the protection of every operation from the contract: operations
 // with `security: []` are public and operations declaring the X-Branch-ID header are
 // branch-scoped. Roles come from operationRoles.
 func BuildPolicies(spec *openapi3.T) (httpx.Policies, error) {
+	roleTable := make(map[string][]string, len(operationRoles))
+	for id, roles := range operationRoles {
+		roleTable[strings.ToLower(id)] = roles
+	}
 	policies := httpx.Policies{}
 	var missing []string
 	for _, path := range spec.Paths.InMatchingOrder() {
@@ -40,7 +63,7 @@ func BuildPolicies(spec *openapi3.T) (httpx.Policies, error) {
 			public := op.Security != nil && len(*op.Security) == 0
 			p := httpx.Operation{Public: public, Branch: hasBranchHeader(op)}
 			if !public {
-				roles, ok := operationRoles[id]
+				roles, ok := roleTable[strings.ToLower(id)]
 				if !ok {
 					missing = append(missing, id)
 				}

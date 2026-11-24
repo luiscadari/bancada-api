@@ -18,6 +18,8 @@ import (
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
 	"gorm.io/gorm/logger"
+
+	"github.com/luiscadari/bancada-api/internal/platform/reqctx"
 )
 
 // Open connects to PostgreSQL and registers the Bancada callbacks.
@@ -54,6 +56,7 @@ func WithTx(ctx context.Context, tx *gorm.DB) context.Context {
 // It panics when called outside a tenant transaction: that is a programming error
 // and running the query without the tenant setting would return no rows.
 func Conn(ctx context.Context) *gorm.DB {
+	ctx = reqctx.Unwrap(ctx)
 	tx, ok := ctx.Value(txKey{}).(*gorm.DB)
 	if !ok || tx == nil {
 		panic("database.Conn: no tenant transaction in context")
@@ -63,7 +66,7 @@ func Conn(ctx context.Context) *gorm.DB {
 
 // HasTx reports whether ctx carries a tenant transaction.
 func HasTx(ctx context.Context) bool {
-	tx, ok := ctx.Value(txKey{}).(*gorm.DB)
+	tx, ok := reqctx.Unwrap(ctx).Value(txKey{}).(*gorm.DB)
 	return ok && tx != nil
 }
 
@@ -75,6 +78,7 @@ func SetTenant(tx *gorm.DB, accountID uuid.UUID) error {
 // TenantTx runs fn inside a transaction scoped to accountID. The transaction is
 // available to fn through Conn(ctx). It commits when fn returns nil.
 func TenantTx(ctx context.Context, db *gorm.DB, accountID uuid.UUID, fn func(ctx context.Context) error) (err error) {
+	ctx = reqctx.Unwrap(ctx)
 	tx := db.WithContext(ctx).Begin()
 	if tx.Error != nil {
 		return fmt.Errorf("begin: %w", tx.Error)

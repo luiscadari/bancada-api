@@ -3,6 +3,7 @@
 package httpx
 
 import (
+	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
@@ -40,4 +41,13 @@ func WriteError(c *gin.Context, err error) {
 	_ = c.Error(err)
 	c.Abort()
 	c.Data(e.Status, "application/problem+json", body)
+}
+
+// ClientMeta returns the client IP, user agent and request id of a request context.
+// Strict handlers receive the *gin.Context as their context.Context.
+func ClientMeta(ctx context.Context) (ip, userAgent, requestID string) {
+	if c, ok := ctx.(*gin.Context); ok {
+		return c.ClientIP(), c.Request.UserAgent(), RequestID(c)
+	}
+	return "", "", ""
 }

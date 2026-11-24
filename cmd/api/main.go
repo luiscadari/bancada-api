@@ -14,6 +14,7 @@ import (
 	"os/signal"
 	"syscall"
 	"time"
+	_ "time/tzdata" // the distroless image has no zoneinfo; branches use IANA time zones
 
 	"github.com/luiscadari/bancada-api/internal/app"
 	"github.com/luiscadari/bancada-api/internal/platform/config"

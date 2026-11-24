@@ -9,6 +9,7 @@ import (
 
 	"github.com/luiscadari/bancada-api/internal/api"
 	"github.com/luiscadari/bancada-api/internal/api/gen"
+	"github.com/luiscadari/bancada-api/internal/identity"
 	"github.com/luiscadari/bancada-api/internal/platform/audit"
 	"github.com/luiscadari/bancada-api/internal/platform/auth"
 	"github.com/luiscadari/bancada-api/internal/platform/config"
@@ -21,6 +22,7 @@ type App struct {
 	Router   *gin.Engine
 	AppDB    *gorm.DB
 	SystemDB *gorm.DB
+	Identity *identity.Service
 }
 
 // New builds the application from cfg.
@@ -47,8 +49,15 @@ func New(cfg config.Config) (*App, error) {
 	}
 	issuer := auth.NewIssuer(cfg.JWTSecret, cfg.AccessTokenTTL)
 
+	identitySvc := identity.NewService(appDB, systemDB, issuer, identity.Options{
+		RefreshTTL:    cfg.RefreshTokenTTL,
+		InvitationTTL: cfg.InvitationTTL,
+		PublicAppURL:  cfg.PublicAppURL,
+	})
+
 	server := &api.Server{
-		Health: api.Health{DB: appDB},
+		Health:  api.Health{DB: appDB},
+		Handler: identity.NewHandler(identitySvc),
 	}
 
 	if cfg.Env == "production" {
@@ -64,7 +73,7 @@ func New(cfg config.Config) (*App, error) {
 		httpx.ValidatorMiddleware(spec),
 	)
 	strict := gen.NewStrictHandlerWithOptions(server,
-		[]gen.StrictMiddlewareFunc{httpx.TenancyMiddleware(appDB, issuer, nil, policies)},
+		[]gen.StrictMiddlewareFunc{httpx.TenancyMiddleware(appDB, issuer, identitySvc, policies)},
 		gen.StrictGinServerOptions{
 			RequestErrorHandlerFunc:  httpx.RequestError,
 			HandlerErrorFunc:         httpx.HandlerError,
@@ -74,7 +83,7 @@ func New(cfg config.Config) (*App, error) {
 		ErrorHandler: func(c *gin.Context, err error, _ int) { httpx.RequestError(c, err) },
 	})
 
-	return &App{Router: r, AppDB: appDB, SystemDB: systemDB}, nil
+	return &App{Router: r, AppDB: appDB, SystemDB: systemDB, Identity: identitySvc}, nil
 }
 
 // Close releases the database pools.
