@@ -1,0 +1,133 @@
+openapi: 3.0.3
+info:
+  title: Bancada API
+  version: 0.1.0
+  description: |
+    REST API for Bancada, a multi-tenant SaaS for service orders in small repair shops.
+
+    Conventions:
+    - IDs are UUIDv7. Clients may send their own `id` on create (offline-first); a repeated
+      create with the same `id` returns the existing record.
+    - Money is always an integer amount of cents (`*_cents`).
+    - Errors use `application/problem+json` with a stable English `code` and a pt-BR `detail`.
+    - Branch-scoped operations require the `X-Branch-ID` header.
+servers:
+  - url: http://localhost:8080
+security:
+  - bearerAuth: []
+tags:
+  - name: health
+paths:
+  /healthz:
+    get:
+      tags: [health]
+      operationId: getHealthz
+      summary: Liveness probe
+      security: []
+      responses:
+        "200":
+          description: Process is alive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /readyz:
+    get:
+      tags: [health]
+      operationId: getReadyz
+      summary: Readiness probe (database reachable)
+      security: []
+      responses:
+        "200":
+          description: Ready to serve traffic
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+        default:
+          $ref: "#/components/responses/Problem"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    BranchHeader:
+      name: X-Branch-ID
+      in: header
+      required: true
+      description: Branch the request acts on.
+      schema:
+        type: string
+        format: uuid
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Opaque cursor returned as `next_cursor` by the previous page.
+      schema:
+        type: string
+
+  responses:
+    Problem:
+      description: Error
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: ok
+
+    Problem:
+      type: object
+      description: RFC 9457 problem details.
+      required: [type, title, status, code]
+      properties:
+        type:
+          type: string
+          example: about:blank
+        title:
+          type: string
+        status:
+          type: integer
+        code:
+          type: string
+          description: Stable machine-readable error code.
+          example: quote_expired
+        detail:
+          type: string
+          description: Human-readable explanation in pt-BR.
+        request_id:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/FieldError"
+
+    FieldError:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+        message:
+          type: string

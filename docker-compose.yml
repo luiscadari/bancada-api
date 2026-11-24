@@ -1,0 +1,60 @@
+# Local development stack: PostgreSQL, a one-shot migration job and the API.
+# Defaults are for local development only; override them in a .env file (see .env.example).
+name: bancada
+
+x-db-env: &db-env
+  BANCADA_OWNER_PASSWORD: ${BANCADA_OWNER_PASSWORD:-owner_dev}
+  BANCADA_APP_PASSWORD: ${BANCADA_APP_PASSWORD:-app_dev}
+  BANCADA_SYSTEM_PASSWORD: ${BANCADA_SYSTEM_PASSWORD:-system_dev}
+
+services:
+  db:
+    image: postgres:18-alpine
+    environment:
+      <<: *db-env
+      POSTGRES_DB: bancada
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres_dev}
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d bancada"]
+      interval: 2s
+      timeout: 3s
+      retries: 30
+
+  migrate:
+    build: .
+    command: ["migrate", "up"]
+    environment:
+      MIGRATION_DATABASE_URL: postgres://bancada_owner:${BANCADA_OWNER_PASSWORD:-owner_dev}@db:5432/bancada?sslmode=disable
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+
+  api:
+    build: .
+    command: ["serve"]
+    environment:
+      APP_ENV: ${APP_ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-info}
+      HTTP_ADDR: ":8080"
+      DATABASE_URL: postgres://bancada_app:${BANCADA_APP_PASSWORD:-app_dev}@db:5432/bancada?sslmode=disable
+      SYSTEM_DATABASE_URL: postgres://bancada_system:${BANCADA_SYSTEM_PASSWORD:-system_dev}@db:5432/bancada?sslmode=disable
+      JWT_SECRET: ${JWT_SECRET:-dev-only-jwt-secret-change-me-0123456789}
+      DEVICE_PASSWORD_KEY: ${DEVICE_PASSWORD_KEY:-ZGV2LW9ubHktZGV2aWNlLXBhc3N3b3JkLWtleS0zMmI=}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000}
+      PUBLIC_APP_URL: ${PUBLIC_APP_URL:-http://localhost:3000}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    restart: unless-stopped
+
+volumes:
+  pgdata:
