@@ -1,0 +1,3654 @@
+openapi: 3.0.3
+info:
+  title: Bancada API
+  version: 0.1.0
+  description: |
+    REST API for Bancada, a multi-tenant SaaS for service orders in small repair shops.
+
+    Conventions:
+    - IDs are UUIDv7. Clients may send their own `id` on create (offline-first); a repeated
+      create with the same `id` returns the existing record.
+    - Money is always an integer amount of cents (`*_cents`).
+    - Errors use `application/problem+json` with a stable English `code` and a pt-BR `detail`.
+    - Branch-scoped operations require the `X-Branch-ID` header.
+servers:
+  - url: http://localhost:8080
+security:
+  - bearerAuth: []
+tags:
+  - name: health
+  - name: auth
+  - name: identity
+  - name: registry
+  - name: catalog
+  - name: service-orders
+paths:
+  /healthz:
+    get:
+      tags: [health]
+      operationId: getHealthz
+      summary: Liveness probe
+      security: []
+      responses:
+        "200":
+          description: Process is alive
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+  /readyz:
+    get:
+      tags: [health]
+      operationId: getReadyz
+      summary: Readiness probe (database reachable)
+      security: []
+      responses:
+        "200":
+          description: Ready to serve traffic
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/HealthStatus"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /v1/auth/signup:
+    post:
+      tags: [auth]
+      operationId: signup
+      summary: Create an account (trial) with its first branch and owner (RF-S01)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SignupRequest"
+      responses:
+        "201":
+          description: Account created; the owner is signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/auth/login:
+    post:
+      tags: [auth]
+      operationId: login
+      summary: Sign in with email and password
+      description: |
+        Desktop apps send `device` to register (or refresh) the installation on the given
+        branch; the access token is then bound to that device (ADR-07).
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/LoginRequest"
+      responses:
+        "200":
+          description: Signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/auth/refresh:
+    post:
+      tags: [auth]
+      operationId: refreshSession
+      summary: Exchange a refresh token for a new session (rotation)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "200":
+          description: New session
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/auth/logout:
+    post:
+      tags: [auth]
+      operationId: logout
+      summary: Revoke a refresh token
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/RefreshRequest"
+      responses:
+        "204":
+          description: Signed out
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/auth/accept-invitation:
+    post:
+      tags: [auth]
+      operationId: acceptInvitation
+      summary: Accept an invitation by choosing a password (RF-41)
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AcceptInvitationRequest"
+      responses:
+        "200":
+          description: Invitation accepted; the user is signed in
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Session"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /v1/me:
+    get:
+      tags: [identity]
+      operationId: getMe
+      summary: Current user, account, grants and accessible branches
+      responses:
+        "200":
+          description: Current principal
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Me"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /v1/account:
+    get:
+      tags: [identity]
+      operationId: getAccount
+      responses:
+        "200":
+          description: The account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [identity]
+      operationId: updateAccount
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/AccountUpdate"
+      responses:
+        "200":
+          description: Updated account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Account"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /v1/branches:
+    get:
+      tags: [identity]
+      operationId: listBranches
+      summary: Branches the current user can access
+      responses:
+        "200":
+          description: Branches
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/BranchList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [identity]
+      operationId: createBranch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BranchCreate"
+      responses:
+        "201":
+          description: Branch created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Branch"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/branches/{branchId}:
+    parameters:
+      - $ref: "#/components/parameters/BranchId"
+    get:
+      tags: [identity]
+      operationId: getBranch
+      responses:
+        "200":
+          description: Branch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Branch"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [identity]
+      operationId: updateBranch
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BranchUpdate"
+      responses:
+        "200":
+          description: Updated branch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Branch"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/branches/{branchId}/settings:
+    parameters:
+      - $ref: "#/components/parameters/BranchId"
+    put:
+      tags: [identity]
+      operationId: updateBranchSettings
+      summary: Replace the branch settings (RF-40)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/BranchSettings"
+      responses:
+        "200":
+          description: Updated branch
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Branch"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /v1/users:
+    get:
+      tags: [identity]
+      operationId: listUsers
+      responses:
+        "200":
+          description: Users of the account
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserList"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/users/invitations:
+    post:
+      tags: [identity]
+      operationId: inviteUser
+      summary: Invite a user by email with roles per branch (RF-41)
+      description: |
+        Returns the invitation link. Sending it by email arrives with the communication
+        module; until then the owner shares the link.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/InvitationCreate"
+      responses:
+        "201":
+          description: Invitation created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/InvitationCreated"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/users/{userId}:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    get:
+      tags: [identity]
+      operationId: getUser
+      responses:
+        "200":
+          description: User
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/users/{userId}/grants:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    put:
+      tags: [identity]
+      operationId: updateUserGrants
+      summary: Replace the roles and branches of a user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/GrantsUpdate"
+      responses:
+        "200":
+          description: Updated user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/users/{userId}/disable:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    post:
+      tags: [identity]
+      operationId: disableUser
+      summary: Disable a user and end their sessions
+      responses:
+        "200":
+          description: Disabled user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/users/{userId}/enable:
+    parameters:
+      - $ref: "#/components/parameters/UserId"
+    post:
+      tags: [identity]
+      operationId: enableUser
+      responses:
+        "200":
+          description: Enabled user
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /v1/devices:
+    get:
+      tags: [identity]
+      operationId: listDevices
+      summary: Installed desktop apps of the account
+      responses:
+        "200":
+          description: Devices
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DeviceList"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/devices/{deviceId}/revoke:
+    parameters:
+      - $ref: "#/components/parameters/DeviceId"
+    post:
+      tags: [identity]
+      operationId: revokeDevice
+      summary: Revoke a lost or retired device (ADR-07)
+      responses:
+        "200":
+          description: Revoked device
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Device"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/devices/{deviceId}/number-blocks:
+    parameters:
+      - $ref: "#/components/parameters/DeviceId"
+    post:
+      tags: [identity]
+      operationId: reserveNumberBlock
+      summary: Reserve a block of service order numbers for offline use (RN-04)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/NumberBlockRequest"
+      responses:
+        "201":
+          description: Reserved block
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NumberBlock"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /v1/customers:
+    get:
+      tags: [registry]
+      operationId: listCustomers
+      summary: Search customers by name, document, phone or email (RF-01, UC-01)
+      parameters:
+        - $ref: "#/components/parameters/Search"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CustomerList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [registry]
+      operationId: createCustomer
+      summary: Register a customer with its contacts (RF-01, RF-45)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerCreate"
+      responses:
+        "201":
+          description: Created (or the existing record, when the id was already used)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/customers/{customerId}:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+    get:
+      tags: [registry]
+      operationId: getCustomer
+      responses:
+        "200":
+          description: The record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [registry]
+      operationId: updateCustomer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CustomerUpdate"
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Customer"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/customers/{customerId}/contacts:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+    post:
+      tags: [registry]
+      operationId: createContact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactInput"
+      responses:
+        "201":
+          description: Created contact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/customers/{customerId}/contacts/{contactId}:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+      - $ref: "#/components/parameters/ContactId"
+    patch:
+      tags: [registry]
+      operationId: updateContact
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ContactUpdate"
+      responses:
+        "200":
+          description: Updated contact
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Contact"
+        default:
+          $ref: "#/components/responses/Problem"
+    delete:
+      tags: [registry]
+      operationId: deleteContact
+      responses:
+        "204":
+          description: Removed
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/customers/{customerId}/cost-centers:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+    post:
+      tags: [registry]
+      operationId: createCostCenter
+      summary: Add a cost center (department to bill) to a company customer (RF-45, RN-34)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CostCenterInput"
+      responses:
+        "201":
+          description: Created cost center
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CostCenter"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/customers/{customerId}/cost-centers/{costCenterId}:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+      - $ref: "#/components/parameters/CostCenterId"
+    patch:
+      tags: [registry]
+      operationId: updateCostCenter
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CostCenterUpdate"
+      responses:
+        "200":
+          description: Updated cost center
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/CostCenter"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/equipment-types:
+    get:
+      tags: [registry]
+      operationId: listEquipmentTypes
+      summary: Equipment types with their custom fields and entry checklist (RF-03)
+      responses:
+        "200":
+          description: Types
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EquipmentTypeList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [registry]
+      operationId: createEquipmentType
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentTypeInput"
+      responses:
+        "201":
+          description: Created type
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EquipmentType"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/equipment-types/{equipmentTypeId}:
+    parameters:
+      - $ref: "#/components/parameters/EquipmentTypeId"
+    get:
+      tags: [registry]
+      operationId: getEquipmentType
+      responses:
+        "200":
+          description: The record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EquipmentType"
+        default:
+          $ref: "#/components/responses/Problem"
+    put:
+      tags: [registry]
+      operationId: updateEquipmentType
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentTypeInput"
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EquipmentType"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/equipment:
+    get:
+      tags: [registry]
+      operationId: listEquipment
+      summary: Search equipment by serial number, brand or model (RF-02, RF-36)
+      parameters:
+        - $ref: "#/components/parameters/Search"
+        - name: customer_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: serial_number
+          in: query
+          description: Exact serial number (case-insensitive).
+          schema:
+            type: string
+            maxLength: 120
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of equipment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EquipmentList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [registry]
+      operationId: createEquipment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentCreate"
+      responses:
+        "201":
+          description: Created equipment
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Equipment"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/equipment/{equipmentId}:
+    parameters:
+      - $ref: "#/components/parameters/EquipmentId"
+    get:
+      tags: [registry]
+      operationId: getEquipment
+      responses:
+        "200":
+          description: The record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Equipment"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [registry]
+      operationId: updateEquipment
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/EquipmentUpdate"
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Equipment"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/services:
+    get:
+      tags: [catalog]
+      operationId: listServices
+      summary: Service catalog (RF-04)
+      parameters:
+        - $ref: "#/components/parameters/Search"
+        - $ref: "#/components/parameters/Active"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [catalog]
+      operationId: createService
+      summary: Add a service to the catalog
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceInput"
+      responses:
+        "201":
+          description: Created (or the existing record, when the id was already used)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/services/{serviceId}:
+    parameters:
+      - $ref: "#/components/parameters/ServiceId"
+    get:
+      tags: [catalog]
+      operationId: getService
+      responses:
+        "200":
+          description: The record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [catalog]
+      operationId: updateService
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceUpdate"
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Service"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/products:
+    get:
+      tags: [catalog]
+      operationId: listProducts
+      summary: Products and parts by name, SKU or barcode (RF-05)
+      parameters:
+        - $ref: "#/components/parameters/Search"
+        - $ref: "#/components/parameters/Active"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ProductList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [catalog]
+      operationId: createProduct
+      summary: Add a product or part
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductInput"
+      responses:
+        "201":
+          description: Created (or the existing record, when the id was already used)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/products/{productId}:
+    parameters:
+      - $ref: "#/components/parameters/ProductId"
+    get:
+      tags: [catalog]
+      operationId: getProduct
+      responses:
+        "200":
+          description: The record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [catalog]
+      operationId: updateProduct
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProductUpdate"
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Product"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/suppliers:
+    get:
+      tags: [catalog]
+      operationId: listSuppliers
+      summary: Suppliers (RF-06)
+      parameters:
+        - $ref: "#/components/parameters/Search"
+        - $ref: "#/components/parameters/Active"
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of results
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/SupplierList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [catalog]
+      operationId: createSupplier
+      summary: Add a supplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplierInput"
+      responses:
+        "201":
+          description: Created (or the existing record, when the id was already used)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/suppliers/{supplierId}:
+    parameters:
+      - $ref: "#/components/parameters/SupplierId"
+    get:
+      tags: [catalog]
+      operationId: getSupplier
+      responses:
+        "200":
+          description: The record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [catalog]
+      operationId: updateSupplier
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SupplierUpdate"
+      responses:
+        "200":
+          description: Updated record
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Supplier"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/niche-packs/{packCode}/apply:
+    parameters:
+      - name: packCode
+        in: path
+        required: true
+        schema:
+          type: string
+          enum: [it_repair]
+    post:
+      tags: [catalog]
+      operationId: applyNichePack
+      summary: Add the equipment types, checklists and services of a niche pack (RF-08)
+      description: Items whose name already exists are skipped, so applying twice is harmless.
+      responses:
+        "200":
+          description: What was added
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/NichePackResult"
+        default:
+          $ref: "#/components/responses/Problem"
+
+  /v1/customers/{customerId}/history:
+    parameters:
+      - $ref: "#/components/parameters/CustomerId"
+    get:
+      tags: [service-orders]
+      operationId: getCustomerHistory
+      summary: Service orders of a customer in the branches the user can access (RF-35)
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of orders, newest first
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceOrderList"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/equipment/{equipmentId}/history:
+    parameters:
+      - $ref: "#/components/parameters/EquipmentId"
+    get:
+      tags: [service-orders]
+      operationId: getEquipmentHistory
+      summary: Service orders of an equipment with its active warranties (RF-36)
+      parameters:
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of orders, newest first, and the active warranties
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/EquipmentHistory"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/service-orders:
+    get:
+      tags: [service-orders]
+      operationId: listServiceOrders
+      summary: Queue and search of the branch's orders (RF-11, RF-17)
+      description: |
+        `q` matches the order number, the customer name (accent-insensitive), a contact
+        phone or the equipment serial number. Results are newest first.
+      parameters:
+        - $ref: "#/components/parameters/BranchHeader"
+        - $ref: "#/components/parameters/Search"
+        - name: status
+          in: query
+          description: One or more statuses (repeat the parameter).
+          schema:
+            type: array
+            items:
+              $ref: "#/components/schemas/OrderStatus"
+        - name: technician_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: unassigned
+          in: query
+          description: Only orders without a technician.
+          schema:
+            type: boolean
+        - name: customer_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: equipment_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - $ref: "#/components/parameters/Limit"
+        - $ref: "#/components/parameters/Cursor"
+      responses:
+        "200":
+          description: Page of orders
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceOrderList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [service-orders]
+      operationId: openServiceOrder
+      summary: Open a service order (UC-01, RN-04, RN-05)
+      description: |
+        The number comes from the branch counter, or from a block reserved by the calling
+        device when `reserved_sequence` is sent. The response lists the equipment's active
+        warranties so the counter can offer a warranty return (UC-01 2b).
+      parameters:
+        - $ref: "#/components/parameters/BranchHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceOrderOpen"
+      responses:
+        "201":
+          description: Opened order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceOrderOpened"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/service-orders/{orderId}:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - $ref: "#/components/parameters/BranchHeader"
+    get:
+      tags: [service-orders]
+      operationId: getServiceOrder
+      responses:
+        "200":
+          description: The order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceOrder"
+        default:
+          $ref: "#/components/responses/Problem"
+    patch:
+      tags: [service-orders]
+      operationId: updateServiceOrder
+      summary: Record diagnosis, technical report and other details (RF-12, RF-14)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ServiceOrderUpdate"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceOrder"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/service-orders/{orderId}/assignment:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - $ref: "#/components/parameters/BranchHeader"
+    patch:
+      tags: [service-orders]
+      operationId: assignServiceOrder
+      summary: Assign the technician and the priority (RF-11)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Assignment"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceOrder"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/service-orders/{orderId}/transitions:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - $ref: "#/components/parameters/BranchHeader"
+    post:
+      tags: [service-orders]
+      operationId: transitionServiceOrder
+      summary: Move the order through diagnosis and execution (section 8, RN-07)
+      description: |
+        Covers the bench steps. Quotes, delivery, cancelation, abandonment and warranty
+        returns have their own operations.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Transition"
+      responses:
+        "200":
+          description: Updated order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceOrder"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/service-orders/{orderId}/history:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - $ref: "#/components/parameters/BranchHeader"
+    get:
+      tags: [service-orders]
+      operationId: listOrderStatusHistory
+      summary: Status changes of the order, oldest first (RN-07)
+      responses:
+        "200":
+          description: Status changes
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/StatusChangeList"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/service-orders/{orderId}/device-password/reveal:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - $ref: "#/components/parameters/BranchHeader"
+    post:
+      tags: [service-orders]
+      operationId: revealDevicePassword
+      summary: Show the equipment password; every access is audited (RN-31)
+      responses:
+        "200":
+          description: The password
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/DevicePassword"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/service-orders/{orderId}/quotes:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - $ref: "#/components/parameters/BranchHeader"
+    get:
+      tags: [service-orders]
+      operationId: listQuotes
+      summary: Every quote version of the order (RN-11)
+      responses:
+        "200":
+          description: Quotes, oldest first
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/QuoteList"
+        default:
+          $ref: "#/components/responses/Problem"
+    post:
+      tags: [service-orders]
+      operationId: createQuote
+      summary: Start a quote draft (RF-12)
+      description: An order has at most one draft. Prices come from the catalog unless overridden.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteInput"
+      responses:
+        "201":
+          description: Draft quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/service-orders/{orderId}/quotes/{quoteId}:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - $ref: "#/components/parameters/QuoteId"
+      - $ref: "#/components/parameters/BranchHeader"
+    put:
+      tags: [service-orders]
+      operationId: updateQuote
+      summary: Replace the notes and items of a draft
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteUpdate"
+      responses:
+        "200":
+          description: Updated draft
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Quote"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/service-orders/{orderId}/quotes/{quoteId}/send:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - $ref: "#/components/parameters/QuoteId"
+      - $ref: "#/components/parameters/BranchHeader"
+    post:
+      tags: [service-orders]
+      operationId: sendQuote
+      summary: Send the draft to the customer (RN-09, RN-10, RN-11)
+      description: |
+        Sets the validity, supersedes earlier versions and moves the order to
+        awaiting_approval. A total within the pre-authorized amount, or a quote with nothing
+        to charge, is approved at once.
+      responses:
+        "200":
+          description: The order and the sent quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderQuote"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/service-orders/{orderId}/quotes/{quoteId}/decision:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - $ref: "#/components/parameters/QuoteId"
+      - $ref: "#/components/parameters/BranchHeader"
+    post:
+      tags: [service-orders]
+      operationId: decideQuote
+      summary: Record the customer's approval or rejection (UC-03, RN-10, RN-14, RN-34)
+      description: |
+        A partial approval (`accepted_item_ids` without some optional items) creates a new
+        approved version with the accepted items only.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/QuoteDecision"
+      responses:
+        "200":
+          description: The order and the decided quote
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/OrderQuote"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/service-orders/{orderId}/deliver:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - $ref: "#/components/parameters/BranchHeader"
+    post:
+      tags: [service-orders]
+      operationId: deliverServiceOrder
+      summary: Hand the equipment back (UC-05, RN-15, RN-18, RN-31)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Delivery"
+      responses:
+        "200":
+          description: Delivered order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceOrder"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/service-orders/{orderId}/cancel:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - $ref: "#/components/parameters/BranchHeader"
+    post:
+      tags: [service-orders]
+      operationId: cancelServiceOrder
+      summary: Cancel the order with a reason (RN-08)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Cancelation"
+      responses:
+        "200":
+          description: Canceled order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceOrder"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/service-orders/{orderId}/abandon:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - $ref: "#/components/parameters/BranchHeader"
+    post:
+      tags: [service-orders]
+      operationId: abandonServiceOrder
+      summary: Mark the equipment as abandoned after the branch's term (RN-16)
+      requestBody:
+        required: false
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Abandonment"
+      responses:
+        "200":
+          description: Abandoned order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceOrder"
+        default:
+          $ref: "#/components/responses/Problem"
+  /v1/service-orders/{orderId}/warranty-return:
+    parameters:
+      - $ref: "#/components/parameters/OrderId"
+      - $ref: "#/components/parameters/BranchHeader"
+    post:
+      tags: [service-orders]
+      operationId: openWarrantyReturn
+      summary: Open a warranty return linked to a delivered order (UC-07, RN-19)
+      description: |
+        Opens a new order in the same branch with a draft quote holding the covered items at
+        no charge. Other items can be added to the draft as usual.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/WarrantyReturn"
+      responses:
+        "201":
+          description: The new order
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ServiceOrderOpened"
+        default:
+          $ref: "#/components/responses/Problem"
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  parameters:
+    OrderId:
+      name: orderId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    QuoteId:
+      name: quoteId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CustomerId:
+      name: customerId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ContactId:
+      name: contactId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    CostCenterId:
+      name: costCenterId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    EquipmentTypeId:
+      name: equipmentTypeId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    EquipmentId:
+      name: equipmentId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ServiceId:
+      name: serviceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProductId:
+      name: productId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    SupplierId:
+      name: supplierId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    Search:
+      name: q
+      in: query
+      required: false
+      description: Free-text search.
+      schema:
+        type: string
+        maxLength: 120
+    Active:
+      name: active
+      in: query
+      required: false
+      description: Filter by active flag. Omit to list everything.
+      schema:
+        type: boolean
+    BranchId:
+      name: branchId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    UserId:
+      name: userId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    DeviceId:
+      name: deviceId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    BranchHeader:
+      name: X-Branch-ID
+      in: header
+      required: true
+      description: Branch the request acts on.
+      schema:
+        type: string
+        format: uuid
+    Limit:
+      name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 200
+        default: 50
+    Cursor:
+      name: cursor
+      in: query
+      required: false
+      description: Opaque cursor returned as `next_cursor` by the previous page.
+      schema:
+        type: string
+
+  responses:
+    Problem:
+      description: Error
+      content:
+        application/problem+json:
+          schema:
+            $ref: "#/components/schemas/Problem"
+
+  schemas:
+    HealthStatus:
+      type: object
+      required: [status]
+      properties:
+        status:
+          type: string
+          example: ok
+
+    Problem:
+      type: object
+      description: RFC 9457 problem details.
+      required: [type, title, status, code]
+      properties:
+        type:
+          type: string
+          example: about:blank
+        title:
+          type: string
+        status:
+          type: integer
+        code:
+          type: string
+          description: Stable machine-readable error code.
+          example: quote_expired
+        detail:
+          type: string
+          description: Human-readable explanation in pt-BR.
+        request_id:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: "#/components/schemas/FieldError"
+
+    FieldError:
+      type: object
+      required: [field, message]
+      properties:
+        field:
+          type: string
+        message:
+          type: string
+
+    Role:
+      type: string
+      enum: [owner, attendant, technician]
+
+    Grant:
+      type: object
+      description: A role held by a user. Owners have a null branch_id (all branches).
+      required: [branch_id, role]
+      properties:
+        branch_id:
+          type: string
+          format: uuid
+          nullable: true
+        role:
+          $ref: "#/components/schemas/Role"
+
+    SignupRequest:
+      type: object
+      required: [account, branch, owner]
+      properties:
+        account:
+          type: object
+          required: [trade_name]
+          properties:
+            trade_name:
+              type: string
+              minLength: 1
+              maxLength: 120
+            document:
+              type: string
+              maxLength: 20
+              description: CPF or CNPJ, digits only.
+        branch:
+          type: object
+          required: [name, os_prefix]
+          properties:
+            name:
+              type: string
+              minLength: 1
+              maxLength: 120
+            os_prefix:
+              $ref: "#/components/schemas/OSPrefix"
+            timezone:
+              type: string
+              example: America/Sao_Paulo
+        owner:
+          type: object
+          required: [name, email, password]
+          properties:
+            name:
+              type: string
+              minLength: 1
+              maxLength: 120
+            email:
+              type: string
+              format: email
+              maxLength: 254
+            password:
+              $ref: "#/components/schemas/Password"
+        apply_niche_pack:
+          type: boolean
+          default: true
+          description: Seed the equipment types, checklists and services of the account's niche (RF-08).
+
+    Password:
+      type: string
+      minLength: 8
+      maxLength: 128
+
+    OSPrefix:
+      type: string
+      pattern: "^[A-Z0-9]{2,6}$"
+      description: Prefix of the branch's service order numbers (e.g. MAT in MAT-000123).
+      example: MAT
+
+    LoginRequest:
+      type: object
+      required: [email, password]
+      properties:
+        email:
+          type: string
+          format: email
+        password:
+          type: string
+          minLength: 1
+          maxLength: 128
+        device:
+          $ref: "#/components/schemas/DeviceRegistration"
+
+    DeviceRegistration:
+      type: object
+      required: [id, branch_id, name, platform]
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: UUID generated by the app on first run.
+        branch_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+          example: Balcão 1
+        platform:
+          $ref: "#/components/schemas/DevicePlatform"
+
+    DevicePlatform:
+      type: string
+      enum: [windows, macos, linux]
+
+    RefreshRequest:
+      type: object
+      required: [refresh_token]
+      properties:
+        refresh_token:
+          type: string
+          minLength: 1
+          maxLength: 256
+
+    AcceptInvitationRequest:
+      type: object
+      required: [token, password]
+      properties:
+        token:
+          type: string
+          minLength: 1
+          maxLength: 256
+        password:
+          $ref: "#/components/schemas/Password"
+
+    Session:
+      type: object
+      required: [access_token, token_type, expires_in, refresh_token, refresh_expires_at, user, account]
+      properties:
+        access_token:
+          type: string
+        token_type:
+          type: string
+          example: Bearer
+        expires_in:
+          type: integer
+          description: Access token lifetime in seconds.
+        refresh_token:
+          type: string
+        refresh_expires_at:
+          type: string
+          format: date-time
+        device_id:
+          type: string
+          format: uuid
+          nullable: true
+        user:
+          $ref: "#/components/schemas/User"
+        account:
+          $ref: "#/components/schemas/Account"
+
+    Me:
+      type: object
+      required: [user, account, branches]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        account:
+          $ref: "#/components/schemas/Account"
+        branches:
+          type: array
+          items:
+            $ref: "#/components/schemas/Branch"
+        device_id:
+          type: string
+          format: uuid
+          nullable: true
+
+    AccountStatus:
+      type: string
+      enum: [trial, active, delinquent, suspended, closed]
+
+    Account:
+      type: object
+      required: [id, trade_name, niche, status, created_at, updated_at, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        trade_name:
+          type: string
+        document:
+          type: string
+          nullable: true
+        niche:
+          type: string
+        status:
+          $ref: "#/components/schemas/AccountStatus"
+        trial_ends_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+
+    AccountUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        trade_name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        document:
+          type: string
+          maxLength: 20
+
+    DiagnosticFee:
+      type: object
+      required: [enabled, amount_cents, deduct_on_approval]
+      properties:
+        enabled:
+          type: boolean
+        amount_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        deduct_on_approval:
+          type: boolean
+          description: Whether the fee is deducted from the service when the quote is approved (RN-13).
+
+    BranchSettings:
+      type: object
+      description: Per-branch rules (RF-40). Defaults follow the requirements document.
+      required:
+        - diagnostic_fee
+        - quote_validity_days
+        - default_warranty_days
+        - pickup_reminder_days
+        - abandonment_days
+        - storage_fee_enabled
+        - allow_negative_stock
+        - technician_can_open_and_deliver
+        - attendant_max_discount_percent
+        - terms
+      properties:
+        diagnostic_fee:
+          $ref: "#/components/schemas/DiagnosticFee"
+        quote_validity_days:
+          type: integer
+          minimum: 1
+          maximum: 365
+          description: RN-09 (default 7).
+        default_warranty_days:
+          type: integer
+          minimum: 0
+          maximum: 3650
+          description: RN-18 (default 90).
+        pickup_reminder_days:
+          type: array
+          maxItems: 10
+          items:
+            type: integer
+            minimum: 1
+            maximum: 3650
+          description: RN-16 (default 7, 15 and 30).
+        abandonment_days:
+          type: integer
+          minimum: 1
+          maximum: 7300
+          description: RN-16 (default 1095, three years).
+        storage_fee_enabled:
+          type: boolean
+          description: RN-17.
+        allow_negative_stock:
+          type: boolean
+          description: RN-21.
+        technician_can_open_and_deliver:
+          type: boolean
+          description: Permission matrix, "Abrir e entregar OS" for technicians.
+        attendant_max_discount_percent:
+          type: integer
+          minimum: 0
+          maximum: 100
+          description: RN-12. Discounts above this need the owner.
+        terms:
+          type: string
+          maxLength: 20000
+          description: Terms printed on the entry receipt (RN-06).
+
+    Branch:
+      type: object
+      required: [id, name, os_prefix, timezone, settings, created_at, updated_at, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        os_prefix:
+          type: string
+        timezone:
+          type: string
+        settings:
+          $ref: "#/components/schemas/BranchSettings"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+
+    BranchCreate:
+      type: object
+      required: [name, os_prefix]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        os_prefix:
+          $ref: "#/components/schemas/OSPrefix"
+        timezone:
+          type: string
+        settings:
+          $ref: "#/components/schemas/BranchSettings"
+
+    BranchUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        os_prefix:
+          $ref: "#/components/schemas/OSPrefix"
+        timezone:
+          type: string
+
+    BranchList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Branch"
+
+    UserStatus:
+      type: string
+      enum: [invited, active, disabled]
+
+    User:
+      type: object
+      required: [id, name, email, status, mfa_enabled, grants, created_at, updated_at, version]
+      properties:
+        id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        email:
+          type: string
+        status:
+          $ref: "#/components/schemas/UserStatus"
+        mfa_enabled:
+          type: boolean
+        last_login_at:
+          type: string
+          format: date-time
+          nullable: true
+        grants:
+          type: array
+          items:
+            $ref: "#/components/schemas/Grant"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+
+    UserList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/User"
+
+    InvitationCreate:
+      type: object
+      required: [name, email, grants]
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        grants:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/Grant"
+
+    InvitationCreated:
+      type: object
+      required: [user, invitation_url, expires_at]
+      properties:
+        user:
+          $ref: "#/components/schemas/User"
+        invitation_url:
+          type: string
+        expires_at:
+          type: string
+          format: date-time
+
+    GrantsUpdate:
+      type: object
+      required: [grants]
+      properties:
+        grants:
+          type: array
+          minItems: 1
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/Grant"
+
+    Device:
+      type: object
+      required: [id, branch_id, name, platform, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        branch_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        platform:
+          $ref: "#/components/schemas/DevicePlatform"
+        last_seen_at:
+          type: string
+          format: date-time
+          nullable: true
+        revoked_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    DeviceList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Device"
+
+    NumberBlockRequest:
+      type: object
+      properties:
+        size:
+          type: integer
+          minimum: 10
+          maximum: 500
+          default: 50
+
+    NumberBlock:
+      type: object
+      required: [id, device_id, branch_id, os_prefix, range_start, range_end, first_number, last_number]
+      properties:
+        id:
+          type: string
+          format: uuid
+        device_id:
+          type: string
+          format: uuid
+        branch_id:
+          type: string
+          format: uuid
+        os_prefix:
+          type: string
+        range_start:
+          type: integer
+          format: int64
+        range_end:
+          type: integer
+          format: int64
+        first_number:
+          type: string
+          example: MAT-000051
+        last_number:
+          type: string
+          example: MAT-000100
+
+    Timestamps:
+      type: object
+      required: [created_at, updated_at, version]
+      properties:
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        version:
+          type: integer
+          format: int64
+
+    ClientId:
+      type: string
+      format: uuid
+      description: Optional UUIDv7 generated by the client. Repeating a create with the same id returns the existing record.
+
+    CustomerType:
+      type: string
+      enum: [individual, company]
+      description: individual = pessoa física (CPF), company = pessoa jurídica (CNPJ).
+
+    LegalBasis:
+      type: string
+      enum: [contract, consent, legal_obligation, legitimate_interest]
+      description: LGPD legal basis for processing the customer's data (RN-31).
+
+    Consent:
+      type: object
+      required: [granted]
+      properties:
+        granted:
+          type: boolean
+        updated_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    Consents:
+      type: object
+      description: Communication consent per channel (RF-01, RN-29).
+      required: [whatsapp, email]
+      properties:
+        whatsapp:
+          $ref: "#/components/schemas/Consent"
+        email:
+          $ref: "#/components/schemas/Consent"
+
+    ConsentsInput:
+      type: object
+      properties:
+        whatsapp:
+          type: boolean
+        email:
+          type: boolean
+
+    Contact:
+      type: object
+      required: [id, customer_id, name, is_primary, is_requester, is_approver]
+      properties:
+        id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        phone:
+          type: string
+          nullable: true
+        email:
+          type: string
+          nullable: true
+        is_primary:
+          type: boolean
+        is_requester:
+          type: boolean
+          description: May bring equipment on behalf of a company customer (RN-34).
+        is_approver:
+          type: boolean
+          description: May approve quotes on behalf of a company customer (RN-34).
+        approval_limit_cents:
+          type: integer
+          format: int64
+          nullable: true
+          description: Maximum quote total this approver may approve; null means no limit.
+
+    ContactInput:
+      type: object
+      required: [name]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 30
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        is_primary:
+          type: boolean
+        is_requester:
+          type: boolean
+        is_approver:
+          type: boolean
+        approval_limit_cents:
+          type: integer
+          format: int64
+          minimum: 0
+
+    ContactUpdate:
+      type: object
+      minProperties: 1
+      description: Send an empty string to clear phone or email.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        phone:
+          type: string
+          maxLength: 30
+        email:
+          type: string
+          maxLength: 254
+        is_primary:
+          type: boolean
+        is_requester:
+          type: boolean
+        is_approver:
+          type: boolean
+        approval_limit_cents:
+          type: integer
+          format: int64
+          minimum: -1
+          description: Use -1 to remove the limit.
+
+    CostCenter:
+      type: object
+      required: [id, customer_id, name, active]
+      properties:
+        id:
+          type: string
+          format: uuid
+        customer_id:
+          type: string
+          format: uuid
+        name:
+          type: string
+        code:
+          type: string
+          nullable: true
+        active:
+          type: boolean
+
+    CostCenterInput:
+      type: object
+      required: [name]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        code:
+          type: string
+          maxLength: 40
+
+    CostCenterUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        code:
+          type: string
+          maxLength: 40
+        active:
+          type: boolean
+
+    Customer:
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - type: object
+          required: [id, type, name, legal_basis, consents, contacts, cost_centers]
+          properties:
+            id:
+              type: string
+              format: uuid
+            type:
+              $ref: "#/components/schemas/CustomerType"
+            name:
+              type: string
+            document:
+              type: string
+              nullable: true
+              description: CPF or CNPJ, digits only.
+            notes:
+              type: string
+              nullable: true
+            legal_basis:
+              $ref: "#/components/schemas/LegalBasis"
+            consents:
+              $ref: "#/components/schemas/Consents"
+            contacts:
+              type: array
+              items:
+                $ref: "#/components/schemas/Contact"
+            cost_centers:
+              type: array
+              items:
+                $ref: "#/components/schemas/CostCenter"
+
+    CustomerCreate:
+      type: object
+      required: [type, name]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        type:
+          $ref: "#/components/schemas/CustomerType"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        document:
+          type: string
+          maxLength: 20
+        notes:
+          type: string
+          maxLength: 2000
+        legal_basis:
+          $ref: "#/components/schemas/LegalBasis"
+        consents:
+          $ref: "#/components/schemas/ConsentsInput"
+        contacts:
+          type: array
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/ContactInput"
+
+    CustomerUpdate:
+      type: object
+      minProperties: 1
+      description: Send an empty string to clear document or notes.
+      properties:
+        type:
+          $ref: "#/components/schemas/CustomerType"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        document:
+          type: string
+          maxLength: 20
+        notes:
+          type: string
+          maxLength: 2000
+        legal_basis:
+          $ref: "#/components/schemas/LegalBasis"
+        consents:
+          $ref: "#/components/schemas/ConsentsInput"
+
+    CustomerList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Customer"
+        next_cursor:
+          type: string
+          nullable: true
+
+    FieldKind:
+      type: string
+      enum: [text, number, integer, boolean, date, select]
+
+    Key:
+      type: string
+      pattern: "^[a-z][a-z0-9_]{0,49}$"
+      example: page_counter
+
+    CustomField:
+      type: object
+      required: [key, label, kind, required]
+      properties:
+        key:
+          $ref: "#/components/schemas/Key"
+        label:
+          type: string
+          minLength: 1
+          maxLength: 120
+        kind:
+          $ref: "#/components/schemas/FieldKind"
+        required:
+          type: boolean
+        options:
+          type: array
+          maxItems: 100
+          items:
+            type: string
+            minLength: 1
+            maxLength: 120
+          description: Allowed values for kind=select.
+
+    ChecklistKind:
+      type: string
+      enum: [check, text]
+
+    ChecklistItem:
+      type: object
+      required: [key, label, kind, required]
+      properties:
+        key:
+          $ref: "#/components/schemas/Key"
+        label:
+          type: string
+          minLength: 1
+          maxLength: 200
+        kind:
+          $ref: "#/components/schemas/ChecklistKind"
+        required:
+          type: boolean
+
+    EquipmentType:
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - type: object
+          required: [id, name, active, fields, checklist, field_schema]
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            description:
+              type: string
+              nullable: true
+            active:
+              type: boolean
+            fields:
+              type: array
+              items:
+                $ref: "#/components/schemas/CustomField"
+            checklist:
+              type: array
+              items:
+                $ref: "#/components/schemas/ChecklistItem"
+            field_schema:
+              type: object
+              additionalProperties: true
+              description: JSON Schema that validates equipment attributes of this type (ADR-05).
+
+    EquipmentTypeInput:
+      type: object
+      required: [name, fields, checklist]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 120
+        description:
+          type: string
+          maxLength: 1000
+        active:
+          type: boolean
+        fields:
+          type: array
+          maxItems: 50
+          items:
+            $ref: "#/components/schemas/CustomField"
+        checklist:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/ChecklistItem"
+
+    EquipmentTypeList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/EquipmentType"
+
+    Equipment:
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - type: object
+          required: [id, customer_id, type_id, attributes]
+          properties:
+            id:
+              type: string
+              format: uuid
+            customer_id:
+              type: string
+              format: uuid
+            type_id:
+              type: string
+              format: uuid
+            brand:
+              type: string
+              nullable: true
+            model:
+              type: string
+              nullable: true
+            serial_number:
+              type: string
+              nullable: true
+            attributes:
+              type: object
+              additionalProperties: true
+            notes:
+              type: string
+              nullable: true
+
+    EquipmentCreate:
+      type: object
+      required: [customer_id, type_id]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        customer_id:
+          type: string
+          format: uuid
+        type_id:
+          type: string
+          format: uuid
+        brand:
+          type: string
+          maxLength: 120
+        model:
+          type: string
+          maxLength: 120
+        serial_number:
+          type: string
+          maxLength: 120
+        attributes:
+          type: object
+          additionalProperties: true
+          description: Values of the type's custom fields, validated by its field_schema.
+        notes:
+          type: string
+          maxLength: 2000
+
+    EquipmentUpdate:
+      type: object
+      minProperties: 1
+      description: Send an empty string to clear brand, model, serial_number or notes. attributes replaces all values.
+      properties:
+        type_id:
+          type: string
+          format: uuid
+        brand:
+          type: string
+          maxLength: 120
+        model:
+          type: string
+          maxLength: 120
+        serial_number:
+          type: string
+          maxLength: 120
+        attributes:
+          type: object
+          additionalProperties: true
+        notes:
+          type: string
+          maxLength: 2000
+
+    EquipmentList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Equipment"
+        next_cursor:
+          type: string
+          nullable: true
+
+    Percent:
+      type: number
+      format: double
+      minimum: 0
+      maximum: 100
+
+    Service:
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - type: object
+          required: [id, name, price_cents, warranty_days, commission_percent, active]
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            description:
+              type: string
+              nullable: true
+            price_cents:
+              type: integer
+              format: int64
+            estimated_minutes:
+              type: integer
+              nullable: true
+            warranty_days:
+              type: integer
+            commission_percent:
+              $ref: "#/components/schemas/Percent"
+            active:
+              type: boolean
+
+    ServiceInput:
+      type: object
+      required: [name, price_cents]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        estimated_minutes:
+          type: integer
+          minimum: 0
+        warranty_days:
+          type: integer
+          minimum: 0
+          maximum: 3650
+          description: Defaults to 90 (RN-18).
+        commission_percent:
+          $ref: "#/components/schemas/Percent"
+        active:
+          type: boolean
+
+    ServiceUpdate:
+      type: object
+      minProperties: 1
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        estimated_minutes:
+          type: integer
+          minimum: 0
+        warranty_days:
+          type: integer
+          minimum: 0
+          maximum: 3650
+        commission_percent:
+          $ref: "#/components/schemas/Percent"
+        active:
+          type: boolean
+
+    ServiceList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Service"
+        next_cursor:
+          type: string
+          nullable: true
+
+    Quantity:
+      type: number
+      format: double
+      minimum: 0
+      maximum: 1000000
+
+    Product:
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - type: object
+          required: [id, name, unit, price_cents, min_stock, warranty_days, active]
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            description:
+              type: string
+              nullable: true
+            sku:
+              type: string
+              nullable: true
+            barcode:
+              type: string
+              nullable: true
+            unit:
+              type: string
+              example: un
+            cost_cents:
+              type: integer
+              format: int64
+              nullable: true
+              description: Only visible to owners ("Ver custo de peças e margem").
+            price_cents:
+              type: integer
+              format: int64
+            min_stock:
+              $ref: "#/components/schemas/Quantity"
+            warranty_days:
+              type: integer
+            active:
+              type: boolean
+
+    ProductInput:
+      type: object
+      required: [name, price_cents]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        sku:
+          type: string
+          maxLength: 60
+        barcode:
+          type: string
+          maxLength: 60
+        unit:
+          type: string
+          minLength: 1
+          maxLength: 10
+        cost_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        min_stock:
+          $ref: "#/components/schemas/Quantity"
+        warranty_days:
+          type: integer
+          minimum: 0
+          maximum: 3650
+        active:
+          type: boolean
+
+    ProductUpdate:
+      type: object
+      minProperties: 1
+      description: Send an empty string to clear description, sku or barcode.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        description:
+          type: string
+          maxLength: 2000
+        sku:
+          type: string
+          maxLength: 60
+        barcode:
+          type: string
+          maxLength: 60
+        unit:
+          type: string
+          minLength: 1
+          maxLength: 10
+        cost_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        min_stock:
+          $ref: "#/components/schemas/Quantity"
+        warranty_days:
+          type: integer
+          minimum: 0
+          maximum: 3650
+        active:
+          type: boolean
+
+    ProductList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Product"
+        next_cursor:
+          type: string
+          nullable: true
+
+    Supplier:
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - type: object
+          required: [id, name, active]
+          properties:
+            id:
+              type: string
+              format: uuid
+            name:
+              type: string
+            document:
+              type: string
+              nullable: true
+            email:
+              type: string
+              nullable: true
+            phone:
+              type: string
+              nullable: true
+            contact_name:
+              type: string
+              nullable: true
+            notes:
+              type: string
+              nullable: true
+            active:
+              type: boolean
+
+    SupplierInput:
+      type: object
+      required: [name]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        document:
+          type: string
+          maxLength: 20
+        email:
+          type: string
+          format: email
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 30
+        contact_name:
+          type: string
+          maxLength: 120
+        notes:
+          type: string
+          maxLength: 2000
+        active:
+          type: boolean
+
+    SupplierUpdate:
+      type: object
+      minProperties: 1
+      description: Send an empty string to clear optional fields.
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 200
+        document:
+          type: string
+          maxLength: 20
+        email:
+          type: string
+          maxLength: 254
+        phone:
+          type: string
+          maxLength: 30
+        contact_name:
+          type: string
+          maxLength: 120
+        notes:
+          type: string
+          maxLength: 2000
+        active:
+          type: boolean
+
+    SupplierList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Supplier"
+        next_cursor:
+          type: string
+          nullable: true
+
+    NichePackResult:
+      type: object
+      required: [equipment_types_added, services_added]
+      properties:
+        equipment_types_added:
+          type: integer
+        services_added:
+          type: integer
+
+    OrderStatus:
+      type: string
+      enum: [received, diagnosing, awaiting_approval, approved, in_progress, awaiting_part, testing,
+             ready, awaiting_pickup, delivered, abandoned, canceled]
+
+    Priority:
+      type: string
+      enum: [low, normal, high, urgent]
+
+    EntryChecklist:
+      type: object
+      additionalProperties: true
+      description: |
+        Answers to the equipment type's entry checklist, by item key: a boolean for `check`
+        items and a string for `text` items. Required items must be answered (RN-05).
+
+    ServiceOrderOpen:
+      type: object
+      required: [customer_id, equipment_id, reported_defect, entry_checklist]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        reserved_sequence:
+          type: integer
+          format: int64
+          minimum: 1
+          description: A number from a block reserved by this device (RN-04). Omit to take the next one.
+        customer_id:
+          type: string
+          format: uuid
+        equipment_id:
+          type: string
+          format: uuid
+        reported_defect:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        entry_checklist:
+          $ref: "#/components/schemas/EntryChecklist"
+        accessories:
+          type: string
+          maxLength: 2000
+        device_password:
+          type: string
+          maxLength: 200
+          description: Stored encrypted and erased at delivery (RN-31).
+        pre_authorized_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Amount the customer pre-authorizes without a new approval (RN-10).
+        expected_delivery_at:
+          type: string
+          format: date-time
+        requester_contact_id:
+          type: string
+          format: uuid
+          description: Required for companies; must be a requester contact (RN-34).
+        cost_center_id:
+          type: string
+          format: uuid
+        technician_id:
+          type: string
+          format: uuid
+        priority:
+          $ref: "#/components/schemas/Priority"
+
+    ServiceOrder:
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - type: object
+          required: [id, branch_id, number, sequence, customer_id, customer_name, equipment_id, priority,
+                     status, reported_defect, entry_checklist, has_device_password, diagnostic_fee_cents,
+                     approved_total_cents, amount_due_cents, open_balance_cents]
+          properties:
+            id:
+              type: string
+              format: uuid
+            branch_id:
+              type: string
+              format: uuid
+            number:
+              type: string
+              example: MAT-000123
+            sequence:
+              type: integer
+              format: int64
+            customer_id:
+              type: string
+              format: uuid
+            customer_name:
+              type: string
+            equipment_id:
+              type: string
+              format: uuid
+            technician_id:
+              type: string
+              format: uuid
+              nullable: true
+            priority:
+              $ref: "#/components/schemas/Priority"
+            origin_order_id:
+              type: string
+              format: uuid
+              nullable: true
+              description: Original order of a warranty return (RN-19).
+            requester_contact_id:
+              type: string
+              format: uuid
+              nullable: true
+            approver_contact_id:
+              type: string
+              format: uuid
+              nullable: true
+            cost_center_id:
+              type: string
+              format: uuid
+              nullable: true
+            status:
+              $ref: "#/components/schemas/OrderStatus"
+            reported_defect:
+              type: string
+            diagnosis:
+              type: string
+              nullable: true
+            technical_report:
+              type: string
+              nullable: true
+            entry_checklist:
+              $ref: "#/components/schemas/EntryChecklist"
+            accessories:
+              type: string
+              nullable: true
+            has_device_password:
+              type: boolean
+            pre_authorized_cents:
+              type: integer
+              format: int64
+              nullable: true
+            diagnostic_fee_cents:
+              type: integer
+              format: int64
+              description: Diagnostic fee due on the order (RN-13, RN-14).
+            approved_total_cents:
+              type: integer
+              format: int64
+              description: Total of the approved quote, zero when none.
+            amount_due_cents:
+              type: integer
+              format: int64
+              description: Approved total plus the diagnostic fee due.
+            open_balance_cents:
+              type: integer
+              format: int64
+              description: Balance left open at delivery with the owner's authorization (RN-15).
+            balance_authorized_by:
+              type: string
+              format: uuid
+              nullable: true
+            expected_delivery_at:
+              type: string
+              format: date-time
+              nullable: true
+            ready_at:
+              type: string
+              format: date-time
+              nullable: true
+              description: When the equipment became available for pickup (ready or awaiting_pickup).
+            delivered_at:
+              type: string
+              format: date-time
+              nullable: true
+            canceled_at:
+              type: string
+              format: date-time
+              nullable: true
+            abandoned_at:
+              type: string
+              format: date-time
+              nullable: true
+            cancel_reason:
+              type: string
+              nullable: true
+            picked_up_by_name:
+              type: string
+              nullable: true
+            picked_up_by_document:
+              type: string
+              nullable: true
+
+    WarrantyItem:
+      type: object
+      required: [item_id, order_id, order_number, kind, description, warranty_until]
+      properties:
+        item_id:
+          type: string
+          format: uuid
+        order_id:
+          type: string
+          format: uuid
+        order_number:
+          type: string
+        kind:
+          $ref: "#/components/schemas/QuoteItemKind"
+        description:
+          type: string
+        warranty_until:
+          type: string
+          format: date
+        delivered_at:
+          type: string
+          format: date-time
+          nullable: true
+
+    ServiceOrderOpened:
+      type: object
+      required: [order, active_warranties]
+      properties:
+        order:
+          $ref: "#/components/schemas/ServiceOrder"
+        active_warranties:
+          type: array
+          description: Items of earlier orders still under warranty for this equipment (UC-01 2b).
+          items:
+            $ref: "#/components/schemas/WarrantyItem"
+
+    ServiceOrderList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ServiceOrder"
+        next_cursor:
+          type: string
+          nullable: true
+
+    EquipmentHistory:
+      type: object
+      required: [items, active_warranties]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/ServiceOrder"
+        next_cursor:
+          type: string
+          nullable: true
+        active_warranties:
+          type: array
+          items:
+            $ref: "#/components/schemas/WarrantyItem"
+
+    ServiceOrderUpdate:
+      type: object
+      minProperties: 1
+      description: Send an empty string to clear diagnosis, technical_report, accessories or device_password.
+      properties:
+        diagnosis:
+          type: string
+          maxLength: 8000
+        technical_report:
+          type: string
+          maxLength: 8000
+        accessories:
+          type: string
+          maxLength: 2000
+        device_password:
+          type: string
+          maxLength: 200
+        expected_delivery_at:
+          type: string
+          format: date-time
+        pre_authorized_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        requester_contact_id:
+          type: string
+          format: uuid
+        cost_center_id:
+          type: string
+          format: uuid
+
+    Assignment:
+      type: object
+      minProperties: 1
+      properties:
+        technician_id:
+          type: string
+          format: uuid
+        unassign:
+          type: boolean
+          description: Remove the technician.
+        priority:
+          $ref: "#/components/schemas/Priority"
+
+    Transition:
+      type: object
+      required: [to]
+      properties:
+        to:
+          type: string
+          enum: [diagnosing, awaiting_pickup, in_progress, awaiting_part, testing, ready]
+        reason:
+          type: string
+          maxLength: 2000
+          description: Required when the diagnosis ends without repair (diagnosing → awaiting_pickup).
+
+    StatusChange:
+      type: object
+      required: [id, to_status, created_at]
+      properties:
+        id:
+          type: string
+          format: uuid
+        from_status:
+          allOf:
+            - $ref: "#/components/schemas/OrderStatus"
+          nullable: true
+        to_status:
+          $ref: "#/components/schemas/OrderStatus"
+        reason:
+          type: string
+          nullable: true
+        user_id:
+          type: string
+          format: uuid
+          nullable: true
+        device_id:
+          type: string
+          format: uuid
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+
+    StatusChangeList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/StatusChange"
+
+    DevicePassword:
+      type: object
+      required: [password]
+      properties:
+        password:
+          type: string
+
+    QuoteStatus:
+      type: string
+      enum: [draft, sent, approved, rejected, superseded]
+
+    QuoteItemKind:
+      type: string
+      enum: [service, part]
+
+    DecisionChannel:
+      type: string
+      enum: [counter, phone, whatsapp, email, portal, pre_authorized, no_charge]
+
+    QuoteItem:
+      type: object
+      required: [id, position, kind, description, quantity, list_price_cents, unit_price_cents,
+                 discount_cents, total_cents, optional, warranty_days]
+      properties:
+        id:
+          type: string
+          format: uuid
+        position:
+          type: integer
+        kind:
+          $ref: "#/components/schemas/QuoteItemKind"
+        service_id:
+          type: string
+          format: uuid
+          nullable: true
+        product_id:
+          type: string
+          format: uuid
+          nullable: true
+        description:
+          type: string
+        quantity:
+          $ref: "#/components/schemas/Quantity"
+        list_price_cents:
+          type: integer
+          format: int64
+          description: Catalog price when the item was quoted.
+        unit_price_cents:
+          type: integer
+          format: int64
+        discount_cents:
+          type: integer
+          format: int64
+        total_cents:
+          type: integer
+          format: int64
+        optional:
+          type: boolean
+          description: The customer may decline this item (UC-03 3b).
+        warranty_days:
+          type: integer
+        warranty_until:
+          type: string
+          format: date
+          nullable: true
+          description: Set at delivery (RN-18).
+        covered_item_id:
+          type: string
+          format: uuid
+          nullable: true
+          description: Item of the original order covered by warranty, charged at zero (RN-19).
+
+    QuoteItemInput:
+      type: object
+      required: [kind]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        kind:
+          $ref: "#/components/schemas/QuoteItemKind"
+        service_id:
+          type: string
+          format: uuid
+        product_id:
+          type: string
+          format: uuid
+        description:
+          type: string
+          maxLength: 500
+          description: Defaults to the catalog name.
+        quantity:
+          type: number
+          format: double
+          minimum: 0.001
+          maximum: 1000000
+          default: 1
+        unit_price_cents:
+          type: integer
+          format: int64
+          minimum: 0
+          description: Defaults to the catalog price. A lower price counts as discount (RN-12).
+        discount_cents:
+          type: integer
+          format: int64
+          minimum: 0
+        optional:
+          type: boolean
+        warranty_days:
+          type: integer
+          minimum: 0
+          maximum: 3650
+          description: Defaults to the catalog warranty.
+        covered_item_id:
+          type: string
+          format: uuid
+          description: Warranty item of the original order (warranty returns only).
+
+    Quote:
+      allOf:
+        - $ref: "#/components/schemas/Timestamps"
+        - type: object
+          required: [id, order_id, number, status, subtotal_cents, discount_cents, total_cents, items]
+          properties:
+            id:
+              type: string
+              format: uuid
+            order_id:
+              type: string
+              format: uuid
+            number:
+              type: integer
+              description: Version of the quote within the order (1, 2, ...).
+            status:
+              $ref: "#/components/schemas/QuoteStatus"
+            notes:
+              type: string
+              nullable: true
+            subtotal_cents:
+              type: integer
+              format: int64
+            discount_cents:
+              type: integer
+              format: int64
+            total_cents:
+              type: integer
+              format: int64
+            sent_at:
+              type: string
+              format: date-time
+              nullable: true
+            valid_until:
+              type: string
+              format: date-time
+              nullable: true
+            decision_channel:
+              allOf:
+                - $ref: "#/components/schemas/DecisionChannel"
+              nullable: true
+            decided_by_name:
+              type: string
+              nullable: true
+            decided_by_contact_id:
+              type: string
+              format: uuid
+              nullable: true
+            decided_by_user_id:
+              type: string
+              format: uuid
+              nullable: true
+            decided_at:
+              type: string
+              format: date-time
+              nullable: true
+            rejection_reason:
+              type: string
+              nullable: true
+            previous_quote_id:
+              type: string
+              format: uuid
+              nullable: true
+            items:
+              type: array
+              items:
+                $ref: "#/components/schemas/QuoteItem"
+
+    QuoteList:
+      type: object
+      required: [items]
+      properties:
+        items:
+          type: array
+          items:
+            $ref: "#/components/schemas/Quote"
+
+    QuoteInput:
+      type: object
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        notes:
+          type: string
+          maxLength: 4000
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: "#/components/schemas/QuoteItemInput"
+
+    QuoteUpdate:
+      type: object
+      required: [items]
+      properties:
+        notes:
+          type: string
+          maxLength: 4000
+        items:
+          type: array
+          maxItems: 200
+          items:
+            $ref: "#/components/schemas/QuoteItemInput"
+
+    QuoteDecision:
+      type: object
+      required: [decision, channel]
+      properties:
+        decision:
+          type: string
+          enum: [approved, rejected]
+        channel:
+          type: string
+          enum: [counter, phone, whatsapp, email]
+          description: How the customer answered (the portal has its own flow).
+        approver_name:
+          type: string
+          maxLength: 200
+          description: Who authorized. Required unless approver_contact_id is sent.
+        approver_contact_id:
+          type: string
+          format: uuid
+          description: Required for companies; must be an approver within its limit (RN-34).
+        rejection_reason:
+          type: string
+          maxLength: 2000
+        accepted_item_ids:
+          type: array
+          description: Items the customer accepted. Omit to accept everything.
+          items:
+            type: string
+            format: uuid
+
+    OrderQuote:
+      type: object
+      required: [order, quote]
+      properties:
+        order:
+          $ref: "#/components/schemas/ServiceOrder"
+        quote:
+          $ref: "#/components/schemas/Quote"
+
+    Delivery:
+      type: object
+      properties:
+        picked_up_by_name:
+          type: string
+          maxLength: 200
+          description: Third party who picked the equipment up (UC-05 1a).
+        picked_up_by_document:
+          type: string
+          maxLength: 40
+        authorize_open_balance:
+          type: boolean
+          description: Owner's authorization to deliver with an open balance (RN-15).
+
+    Cancelation:
+      type: object
+      required: [reason]
+      properties:
+        reason:
+          type: string
+          minLength: 3
+          maxLength: 2000
+
+    Abandonment:
+      type: object
+      properties:
+        reason:
+          type: string
+          maxLength: 2000
+
+    WarrantyReturn:
+      type: object
+      required: [reported_defect, entry_checklist]
+      properties:
+        id:
+          $ref: "#/components/schemas/ClientId"
+        reserved_sequence:
+          type: integer
+          format: int64
+          minimum: 1
+        reported_defect:
+          type: string
+          minLength: 1
+          maxLength: 4000
+        entry_checklist:
+          $ref: "#/components/schemas/EntryChecklist"
+        accessories:
+          type: string
+          maxLength: 2000
+        device_password:
+          type: string
+          maxLength: 200
+        expected_delivery_at:
+          type: string
+          format: date-time
+        technician_id:
+          type: string
+          format: uuid
+        covered_item_ids:
+          type: array
+          description: Warranty items to cover. Omit to cover every active one.
+          items:
+            type: string
+            format: uuid
