@@ -580,6 +580,44 @@ func (s *Service) OwnsReservedNumber(ctx context.Context, branchID, deviceID uui
 	return count > 0, err
 }
 
+// ReservedNumber checks that n belongs to a block reserved by deviceID on branchID and
+// returns it formatted (RN-04).
+func (s *Service) ReservedNumber(ctx context.Context, branchID, deviceID uuid.UUID, n int64) (string, error) {
+	ok, err := s.OwnsReservedNumber(ctx, branchID, deviceID, n)
+	if err != nil {
+		return "", err
+	}
+	if !ok {
+		return "", errNumberNotReserved
+	}
+	b, err := s.GetBranch(ctx, branchID)
+	if err != nil {
+		return "", err
+	}
+	return FormatNumber(b.OSPrefix, n), nil
+}
+
+// WorksInBranch reports whether userID is an active user with a role in branchID.
+func (s *Service) WorksInBranch(ctx context.Context, userID, branchID uuid.UUID) (bool, error) {
+	var users []User
+	if err := database.Conn(ctx).Select("id", "status").Where("id = ?", userID).Limit(1).Find(&users).Error; err != nil {
+		return false, err
+	}
+	if len(users) == 0 || users[0].Status != UserActive {
+		return false, nil
+	}
+	grants, err := grantsOf(ctx, userID)
+	if err != nil {
+		return false, err
+	}
+	for _, g := range grants {
+		if g.BranchID == nil || *g.BranchID == branchID {
+			return true, nil
+		}
+	}
+	return false, nil
+}
+
 // ---- principal loader ---------------------------------------------------------------
 
 // LoadGrants implements httpx.PrincipalLoader.

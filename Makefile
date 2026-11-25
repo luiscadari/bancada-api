@@ -9,8 +9,8 @@ build:
 test: ## run all tests (needs Docker for testcontainers)
 	go test -race -count=1 ./...
 
-cover:
-	go test -count=1 -coverprofile=coverage.out ./...
+cover: ## coverage of the business packages, counting every test that exercises them
+	go test -count=1 -coverpkg=./internal/identity/,./internal/registry/,./internal/serviceorder/ -coverprofile=coverage.out ./internal/...
 	go tool cover -func=coverage.out | tail -1
 
 up: ## start db, run migrations and start the API

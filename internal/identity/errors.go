@@ -30,6 +30,8 @@ var (
 	errDeviceNotFound = apperr.NotFound("device_not_found", "Computador não encontrado.")
 	errLastOwner      = apperr.Rule("last_owner",
 		"A conta precisa de pelo menos um dono ativo. Defina outro dono antes.")
-	errSelfDisable  = apperr.Rule("cannot_disable_self", "Você não pode desativar o seu próprio acesso.")
+	errSelfDisable       = apperr.Rule("cannot_disable_self", "Você não pode desativar o seu próprio acesso.")
+	errNumberNotReserved = apperr.Rule("number_not_reserved",
+		"Este número não está num bloco reservado para este computador. Abra a OS sem número para usar o próximo.")
 	errBranchAccess = apperr.Forbidden("branch_forbidden", "Você não tem acesso a esta filial.")
 )

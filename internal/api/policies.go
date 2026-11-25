@@ -78,6 +78,29 @@ var operationRoles = map[string][]string{
 	"createSupplier":      ownerOnly,
 	"updateSupplier":      ownerOnly,
 	"applyNichePack":      ownerOnly,
+
+	// service orders (branch-scoped). Rules that depend on the order or the branch settings
+	// (assigned technician, technician opening/delivering, discount limits, the role of each
+	// status change) are enforced by the service.
+	"listServiceOrders":      everyone,
+	"openServiceOrder":       everyone,
+	"getServiceOrder":        everyone,
+	"updateServiceOrder":     everyone,
+	"assignServiceOrder":     ownerAttendant,
+	"transitionServiceOrder": everyone,
+	"listOrderStatusHistory": everyone,
+	"revealDevicePassword":   everyone,
+	"listQuotes":             everyone,
+	"createQuote":            everyone,
+	"updateQuote":            everyone,
+	"sendQuote":              everyone,
+	"decideQuote":            ownerAttendant, // "Registrar aprovação do orçamento"
+	"deliverServiceOrder":    everyone,
+	"cancelServiceOrder":     ownerAttendant, // RN-08
+	"abandonServiceOrder":    ownerOnly,      // RN-16, section 8
+	"openWarrantyReturn":     everyone,
+	"getCustomerHistory":     everyone,
+	"getEquipmentHistory":    everyone,
 }
 
 // BuildPolicies derives the protection of every operation from the contract: operations

@@ -87,6 +87,39 @@ func (e CustomerType) Valid() bool {
 	}
 }
 
+// Defines values for DecisionChannel.
+const (
+	DecisionChannelCounter       DecisionChannel = "counter"
+	DecisionChannelEmail         DecisionChannel = "email"
+	DecisionChannelNoCharge      DecisionChannel = "no_charge"
+	DecisionChannelPhone         DecisionChannel = "phone"
+	DecisionChannelPortal        DecisionChannel = "portal"
+	DecisionChannelPreAuthorized DecisionChannel = "pre_authorized"
+	DecisionChannelWhatsapp      DecisionChannel = "whatsapp"
+)
+
+// Valid indicates whether the value is a known member of the DecisionChannel enum.
+func (e DecisionChannel) Valid() bool {
+	switch e {
+	case DecisionChannelCounter:
+		return true
+	case DecisionChannelEmail:
+		return true
+	case DecisionChannelNoCharge:
+		return true
+	case DecisionChannelPhone:
+		return true
+	case DecisionChannelPortal:
+		return true
+	case DecisionChannelPreAuthorized:
+		return true
+	case DecisionChannelWhatsapp:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for DevicePlatform.
 const (
 	Linux   DevicePlatform = "linux"
@@ -162,6 +195,165 @@ func (e LegalBasis) Valid() bool {
 	}
 }
 
+// Defines values for OrderStatus.
+const (
+	OrderStatusAbandoned        OrderStatus = "abandoned"
+	OrderStatusApproved         OrderStatus = "approved"
+	OrderStatusAwaitingApproval OrderStatus = "awaiting_approval"
+	OrderStatusAwaitingPart     OrderStatus = "awaiting_part"
+	OrderStatusAwaitingPickup   OrderStatus = "awaiting_pickup"
+	OrderStatusCanceled         OrderStatus = "canceled"
+	OrderStatusDelivered        OrderStatus = "delivered"
+	OrderStatusDiagnosing       OrderStatus = "diagnosing"
+	OrderStatusInProgress       OrderStatus = "in_progress"
+	OrderStatusReady            OrderStatus = "ready"
+	OrderStatusReceived         OrderStatus = "received"
+	OrderStatusTesting          OrderStatus = "testing"
+)
+
+// Valid indicates whether the value is a known member of the OrderStatus enum.
+func (e OrderStatus) Valid() bool {
+	switch e {
+	case OrderStatusAbandoned:
+		return true
+	case OrderStatusApproved:
+		return true
+	case OrderStatusAwaitingApproval:
+		return true
+	case OrderStatusAwaitingPart:
+		return true
+	case OrderStatusAwaitingPickup:
+		return true
+	case OrderStatusCanceled:
+		return true
+	case OrderStatusDelivered:
+		return true
+	case OrderStatusDiagnosing:
+		return true
+	case OrderStatusInProgress:
+		return true
+	case OrderStatusReady:
+		return true
+	case OrderStatusReceived:
+		return true
+	case OrderStatusTesting:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for Priority.
+const (
+	High   Priority = "high"
+	Low    Priority = "low"
+	Normal Priority = "normal"
+	Urgent Priority = "urgent"
+)
+
+// Valid indicates whether the value is a known member of the Priority enum.
+func (e Priority) Valid() bool {
+	switch e {
+	case High:
+		return true
+	case Low:
+		return true
+	case Normal:
+		return true
+	case Urgent:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for QuoteDecisionChannel.
+const (
+	QuoteDecisionChannelCounter  QuoteDecisionChannel = "counter"
+	QuoteDecisionChannelEmail    QuoteDecisionChannel = "email"
+	QuoteDecisionChannelPhone    QuoteDecisionChannel = "phone"
+	QuoteDecisionChannelWhatsapp QuoteDecisionChannel = "whatsapp"
+)
+
+// Valid indicates whether the value is a known member of the QuoteDecisionChannel enum.
+func (e QuoteDecisionChannel) Valid() bool {
+	switch e {
+	case QuoteDecisionChannelCounter:
+		return true
+	case QuoteDecisionChannelEmail:
+		return true
+	case QuoteDecisionChannelPhone:
+		return true
+	case QuoteDecisionChannelWhatsapp:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for QuoteDecisionDecision.
+const (
+	QuoteDecisionDecisionApproved QuoteDecisionDecision = "approved"
+	QuoteDecisionDecisionRejected QuoteDecisionDecision = "rejected"
+)
+
+// Valid indicates whether the value is a known member of the QuoteDecisionDecision enum.
+func (e QuoteDecisionDecision) Valid() bool {
+	switch e {
+	case QuoteDecisionDecisionApproved:
+		return true
+	case QuoteDecisionDecisionRejected:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for QuoteItemKind.
+const (
+	QuoteItemKindPart    QuoteItemKind = "part"
+	QuoteItemKindService QuoteItemKind = "service"
+)
+
+// Valid indicates whether the value is a known member of the QuoteItemKind enum.
+func (e QuoteItemKind) Valid() bool {
+	switch e {
+	case QuoteItemKindPart:
+		return true
+	case QuoteItemKindService:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for QuoteStatus.
+const (
+	QuoteStatusApproved   QuoteStatus = "approved"
+	QuoteStatusDraft      QuoteStatus = "draft"
+	QuoteStatusRejected   QuoteStatus = "rejected"
+	QuoteStatusSent       QuoteStatus = "sent"
+	QuoteStatusSuperseded QuoteStatus = "superseded"
+)
+
+// Valid indicates whether the value is a known member of the QuoteStatus enum.
+func (e QuoteStatus) Valid() bool {
+	switch e {
+	case QuoteStatusApproved:
+		return true
+	case QuoteStatusDraft:
+		return true
+	case QuoteStatusRejected:
+		return true
+	case QuoteStatusSent:
+		return true
+	case QuoteStatusSuperseded:
+		return true
+	default:
+		return false
+	}
+}
+
 // Defines values for Role.
 const (
 	Attendant  Role = "attendant"
@@ -177,6 +369,36 @@ func (e Role) Valid() bool {
 	case Owner:
 		return true
 	case Technician:
+		return true
+	default:
+		return false
+	}
+}
+
+// Defines values for TransitionTo.
+const (
+	TransitionToAwaitingPart   TransitionTo = "awaiting_part"
+	TransitionToAwaitingPickup TransitionTo = "awaiting_pickup"
+	TransitionToDiagnosing     TransitionTo = "diagnosing"
+	TransitionToInProgress     TransitionTo = "in_progress"
+	TransitionToReady          TransitionTo = "ready"
+	TransitionToTesting        TransitionTo = "testing"
+)
+
+// Valid indicates whether the value is a known member of the TransitionTo enum.
+func (e TransitionTo) Valid() bool {
+	switch e {
+	case TransitionToAwaitingPart:
+		return true
+	case TransitionToAwaitingPickup:
+		return true
+	case TransitionToDiagnosing:
+		return true
+	case TransitionToInProgress:
+		return true
+	case TransitionToReady:
+		return true
+	case TransitionToTesting:
 		return true
 	default:
 		return false
@@ -202,6 +424,11 @@ func (e UserStatus) Valid() bool {
 	default:
 		return false
 	}
+}
+
+// Abandonment defines model for Abandonment.
+type Abandonment struct {
+	Reason *string `json:"reason,omitempty"`
 }
 
 // AcceptInvitationRequest defines model for AcceptInvitationRequest.
@@ -230,6 +457,15 @@ type AccountStatus string
 type AccountUpdate struct {
 	Document  *string `json:"document,omitempty"`
 	TradeName *string `json:"trade_name,omitempty"`
+}
+
+// Assignment defines model for Assignment.
+type Assignment struct {
+	Priority     *Priority           `json:"priority,omitempty"`
+	TechnicianId *openapi_types.UUID `json:"technician_id,omitempty"`
+
+	// Unassign Remove the technician.
+	Unassign *bool `json:"unassign,omitempty"`
 }
 
 // Branch defines model for Branch.
@@ -306,6 +542,11 @@ type BranchUpdate struct {
 	// Example: MAT
 	OsPrefix *OSPrefix `json:"os_prefix,omitempty"`
 	Timezone *string   `json:"timezone,omitempty"`
+}
+
+// Cancelation defines model for Cancelation.
+type Cancelation struct {
+	Reason string `json:"reason"`
 }
 
 // ChecklistItem defines model for ChecklistItem.
@@ -486,6 +727,19 @@ type CustomerUpdate struct {
 	Type *CustomerType `json:"type,omitempty"`
 }
 
+// DecisionChannel defines model for DecisionChannel.
+type DecisionChannel string
+
+// Delivery defines model for Delivery.
+type Delivery struct {
+	// AuthorizeOpenBalance Owner's authorization to deliver with an open balance (RN-15).
+	AuthorizeOpenBalance *bool   `json:"authorize_open_balance,omitempty"`
+	PickedUpByDocument   *string `json:"picked_up_by_document,omitempty"`
+
+	// PickedUpByName Third party who picked the equipment up (UC-05 1a).
+	PickedUpByName *string `json:"picked_up_by_name,omitempty"`
+}
+
 // Device defines model for Device.
 type Device struct {
 	BranchId   openapi_types.UUID `json:"branch_id"`
@@ -500,6 +754,11 @@ type Device struct {
 // DeviceList defines model for DeviceList.
 type DeviceList struct {
 	Items []Device `json:"items"`
+}
+
+// DevicePassword defines model for DevicePassword.
+type DevicePassword struct {
+	Password string `json:"password"`
 }
 
 // DevicePlatform defines model for DevicePlatform.
@@ -525,6 +784,10 @@ type DiagnosticFee struct {
 	DeductOnApproval bool `json:"deduct_on_approval"`
 	Enabled          bool `json:"enabled"`
 }
+
+// EntryChecklist Answers to the equipment type's entry checklist, by item key: a boolean for `check`
+// items and a string for `text` items. Required items must be answered (RN-05).
+type EntryChecklist map[string]any
 
 // Equipment defines model for Equipment.
 type Equipment struct {
@@ -554,6 +817,13 @@ type EquipmentCreate struct {
 	Notes        *string            `json:"notes,omitempty"`
 	SerialNumber *string            `json:"serial_number,omitempty"`
 	TypeId       openapi_types.UUID `json:"type_id"`
+}
+
+// EquipmentHistory defines model for EquipmentHistory.
+type EquipmentHistory struct {
+	ActiveWarranties []WarrantyItem `json:"active_warranties"`
+	Items            []ServiceOrder `json:"items"`
+	NextCursor       *string        `json:"next_cursor"`
 }
 
 // EquipmentList defines model for EquipmentList.
@@ -698,11 +968,23 @@ type NumberBlockRequest struct {
 // Example: MAT
 type OSPrefix = string
 
+// OrderQuote defines model for OrderQuote.
+type OrderQuote struct {
+	Order ServiceOrder `json:"order"`
+	Quote Quote        `json:"quote"`
+}
+
+// OrderStatus defines model for OrderStatus.
+type OrderStatus string
+
 // Password defines model for Password.
 type Password = string
 
 // Percent defines model for Percent.
 type Percent = float64
+
+// Priority defines model for Priority.
+type Priority string
 
 // Problem RFC 9457 problem details.
 type Problem struct {
@@ -784,6 +1066,131 @@ type ProductUpdate struct {
 // Quantity defines model for Quantity.
 type Quantity = float64
 
+// Quote defines model for Quote.
+type Quote struct {
+	CreatedAt          time.Time           `json:"created_at"`
+	DecidedAt          *time.Time          `json:"decided_at"`
+	DecidedByContactId *openapi_types.UUID `json:"decided_by_contact_id"`
+	DecidedByName      *string             `json:"decided_by_name"`
+	DecidedByUserId    *openapi_types.UUID `json:"decided_by_user_id"`
+	DecisionChannel    *DecisionChannel    `json:"decision_channel"`
+	DiscountCents      int64               `json:"discount_cents"`
+	Id                 openapi_types.UUID  `json:"id"`
+	Items              []QuoteItem         `json:"items"`
+	Notes              *string             `json:"notes"`
+
+	// Number Version of the quote within the order (1, 2, ...).
+	Number          int                 `json:"number"`
+	OrderId         openapi_types.UUID  `json:"order_id"`
+	PreviousQuoteId *openapi_types.UUID `json:"previous_quote_id"`
+	RejectionReason *string             `json:"rejection_reason"`
+	SentAt          *time.Time          `json:"sent_at"`
+	Status          QuoteStatus         `json:"status"`
+	SubtotalCents   int64               `json:"subtotal_cents"`
+	TotalCents      int64               `json:"total_cents"`
+	UpdatedAt       time.Time           `json:"updated_at"`
+	ValidUntil      *time.Time          `json:"valid_until"`
+	Version         int64               `json:"version"`
+}
+
+// QuoteDecision defines model for QuoteDecision.
+type QuoteDecision struct {
+	// AcceptedItemIds Items the customer accepted. Omit to accept everything.
+	AcceptedItemIds *[]openapi_types.UUID `json:"accepted_item_ids,omitempty"`
+
+	// ApproverContactId Required for companies; must be an approver within its limit (RN-34).
+	ApproverContactId *openapi_types.UUID `json:"approver_contact_id,omitempty"`
+
+	// ApproverName Who authorized. Required unless approver_contact_id is sent.
+	ApproverName *string `json:"approver_name,omitempty"`
+
+	// Channel How the customer answered (the portal has its own flow).
+	Channel         QuoteDecisionChannel  `json:"channel"`
+	Decision        QuoteDecisionDecision `json:"decision"`
+	RejectionReason *string               `json:"rejection_reason,omitempty"`
+}
+
+// QuoteDecisionChannel How the customer answered (the portal has its own flow).
+type QuoteDecisionChannel string
+
+// QuoteDecisionDecision defines model for QuoteDecision.Decision.
+type QuoteDecisionDecision string
+
+// QuoteInput defines model for QuoteInput.
+type QuoteInput struct {
+	// Id Optional UUIDv7 generated by the client. Repeating a create with the same id returns the existing record.
+	Id    *ClientId         `json:"id,omitempty"`
+	Items *[]QuoteItemInput `json:"items,omitempty"`
+	Notes *string           `json:"notes,omitempty"`
+}
+
+// QuoteItem defines model for QuoteItem.
+type QuoteItem struct {
+	// CoveredItemId Item of the original order covered by warranty, charged at zero (RN-19).
+	CoveredItemId *openapi_types.UUID `json:"covered_item_id"`
+	Description   string              `json:"description"`
+	DiscountCents int64               `json:"discount_cents"`
+	Id            openapi_types.UUID  `json:"id"`
+	Kind          QuoteItemKind       `json:"kind"`
+
+	// ListPriceCents Catalog price when the item was quoted.
+	ListPriceCents int64 `json:"list_price_cents"`
+
+	// Optional The customer may decline this item (UC-03 3b).
+	Optional       bool                `json:"optional"`
+	Position       int                 `json:"position"`
+	ProductId      *openapi_types.UUID `json:"product_id"`
+	Quantity       Quantity            `json:"quantity"`
+	ServiceId      *openapi_types.UUID `json:"service_id"`
+	TotalCents     int64               `json:"total_cents"`
+	UnitPriceCents int64               `json:"unit_price_cents"`
+	WarrantyDays   int                 `json:"warranty_days"`
+
+	// WarrantyUntil Set at delivery (RN-18).
+	WarrantyUntil *openapi_types.Date `json:"warranty_until"`
+}
+
+// QuoteItemInput defines model for QuoteItemInput.
+type QuoteItemInput struct {
+	// CoveredItemId Warranty item of the original order (warranty returns only).
+	CoveredItemId *openapi_types.UUID `json:"covered_item_id,omitempty"`
+
+	// Description Defaults to the catalog name.
+	Description   *string `json:"description,omitempty"`
+	DiscountCents *int64  `json:"discount_cents,omitempty"`
+
+	// Id Optional UUIDv7 generated by the client. Repeating a create with the same id returns the existing record.
+	Id        *ClientId           `json:"id,omitempty"`
+	Kind      QuoteItemKind       `json:"kind"`
+	Optional  *bool               `json:"optional,omitempty"`
+	ProductId *openapi_types.UUID `json:"product_id,omitempty"`
+	Quantity  *float64            `json:"quantity,omitempty"`
+	ServiceId *openapi_types.UUID `json:"service_id,omitempty"`
+
+	// UnitPriceCents Defaults to the catalog price. A lower price counts as discount (RN-12).
+	UnitPriceCents *int64 `json:"unit_price_cents,omitempty"`
+
+	// WarrantyDays Defaults to the catalog warranty.
+	WarrantyDays *int `json:"warranty_days,omitempty"`
+}
+
+// QuoteItemKind defines model for QuoteItemKind.
+type QuoteItemKind string
+
+// QuoteList defines model for QuoteList.
+type QuoteList struct {
+	Items []Quote `json:"items"`
+}
+
+// QuoteStatus defines model for QuoteStatus.
+type QuoteStatus string
+
+// QuoteUpdate defines model for QuoteUpdate.
+type QuoteUpdate struct {
+	Items []QuoteItemInput `json:"items"`
+	Notes *string          `json:"notes,omitempty"`
+}
+
 // RefreshRequest defines model for RefreshRequest.
 type RefreshRequest struct {
 	RefreshToken string `json:"refresh_token"`
@@ -827,6 +1234,120 @@ type ServiceInput struct {
 type ServiceList struct {
 	Items      []Service `json:"items"`
 	NextCursor *string   `json:"next_cursor"`
+}
+
+// ServiceOrder defines model for ServiceOrder.
+type ServiceOrder struct {
+	AbandonedAt *time.Time `json:"abandoned_at"`
+	Accessories *string    `json:"accessories"`
+
+	// AmountDueCents Approved total plus the diagnostic fee due.
+	AmountDueCents int64 `json:"amount_due_cents"`
+
+	// ApprovedTotalCents Total of the approved quote, zero when none.
+	ApprovedTotalCents  int64               `json:"approved_total_cents"`
+	ApproverContactId   *openapi_types.UUID `json:"approver_contact_id"`
+	BalanceAuthorizedBy *openapi_types.UUID `json:"balance_authorized_by"`
+	BranchId            openapi_types.UUID  `json:"branch_id"`
+	CancelReason        *string             `json:"cancel_reason"`
+	CanceledAt          *time.Time          `json:"canceled_at"`
+	CostCenterId        *openapi_types.UUID `json:"cost_center_id"`
+	CreatedAt           time.Time           `json:"created_at"`
+	CustomerId          openapi_types.UUID  `json:"customer_id"`
+	CustomerName        string              `json:"customer_name"`
+	DeliveredAt         *time.Time          `json:"delivered_at"`
+	Diagnosis           *string             `json:"diagnosis"`
+
+	// DiagnosticFeeCents Diagnostic fee due on the order (RN-13, RN-14).
+	DiagnosticFeeCents int64 `json:"diagnostic_fee_cents"`
+
+	// EntryChecklist Answers to the equipment type's entry checklist, by item key: a boolean for `check`
+	// items and a string for `text` items. Required items must be answered (RN-05).
+	EntryChecklist     EntryChecklist     `json:"entry_checklist"`
+	EquipmentId        openapi_types.UUID `json:"equipment_id"`
+	ExpectedDeliveryAt *time.Time         `json:"expected_delivery_at"`
+	HasDevicePassword  bool               `json:"has_device_password"`
+	Id                 openapi_types.UUID `json:"id"`
+
+	// Number Example: MAT-000123
+	Number string `json:"number"`
+
+	// OpenBalanceCents Balance left open at delivery with the owner's authorization (RN-15).
+	OpenBalanceCents int64 `json:"open_balance_cents"`
+
+	// OriginOrderId Original order of a warranty return (RN-19).
+	OriginOrderId      *openapi_types.UUID `json:"origin_order_id"`
+	PickedUpByDocument *string             `json:"picked_up_by_document"`
+	PickedUpByName     *string             `json:"picked_up_by_name"`
+	PreAuthorizedCents *int64              `json:"pre_authorized_cents"`
+	Priority           Priority            `json:"priority"`
+
+	// ReadyAt When the equipment became available for pickup (ready or awaiting_pickup).
+	ReadyAt            *time.Time          `json:"ready_at"`
+	ReportedDefect     string              `json:"reported_defect"`
+	RequesterContactId *openapi_types.UUID `json:"requester_contact_id"`
+	Sequence           int64               `json:"sequence"`
+	Status             OrderStatus         `json:"status"`
+	TechnicalReport    *string             `json:"technical_report"`
+	TechnicianId       *openapi_types.UUID `json:"technician_id"`
+	UpdatedAt          time.Time           `json:"updated_at"`
+	Version            int64               `json:"version"`
+}
+
+// ServiceOrderList defines model for ServiceOrderList.
+type ServiceOrderList struct {
+	Items      []ServiceOrder `json:"items"`
+	NextCursor *string        `json:"next_cursor"`
+}
+
+// ServiceOrderOpen defines model for ServiceOrderOpen.
+type ServiceOrderOpen struct {
+	Accessories  *string             `json:"accessories,omitempty"`
+	CostCenterId *openapi_types.UUID `json:"cost_center_id,omitempty"`
+	CustomerId   openapi_types.UUID  `json:"customer_id"`
+
+	// DevicePassword Stored encrypted and erased at delivery (RN-31).
+	DevicePassword *string `json:"device_password,omitempty"`
+
+	// EntryChecklist Answers to the equipment type's entry checklist, by item key: a boolean for `check`
+	// items and a string for `text` items. Required items must be answered (RN-05).
+	EntryChecklist     EntryChecklist     `json:"entry_checklist"`
+	EquipmentId        openapi_types.UUID `json:"equipment_id"`
+	ExpectedDeliveryAt *time.Time         `json:"expected_delivery_at,omitempty"`
+
+	// Id Optional UUIDv7 generated by the client. Repeating a create with the same id returns the existing record.
+	Id *ClientId `json:"id,omitempty"`
+
+	// PreAuthorizedCents Amount the customer pre-authorizes without a new approval (RN-10).
+	PreAuthorizedCents *int64    `json:"pre_authorized_cents,omitempty"`
+	Priority           *Priority `json:"priority,omitempty"`
+	ReportedDefect     string    `json:"reported_defect"`
+
+	// RequesterContactId Required for companies; must be a requester contact (RN-34).
+	RequesterContactId *openapi_types.UUID `json:"requester_contact_id,omitempty"`
+
+	// ReservedSequence A number from a block reserved by this device (RN-04). Omit to take the next one.
+	ReservedSequence *int64              `json:"reserved_sequence,omitempty"`
+	TechnicianId     *openapi_types.UUID `json:"technician_id,omitempty"`
+}
+
+// ServiceOrderOpened defines model for ServiceOrderOpened.
+type ServiceOrderOpened struct {
+	// ActiveWarranties Items of earlier orders still under warranty for this equipment (UC-01 2b).
+	ActiveWarranties []WarrantyItem `json:"active_warranties"`
+	Order            ServiceOrder   `json:"order"`
+}
+
+// ServiceOrderUpdate Send an empty string to clear diagnosis, technical_report, accessories or device_password.
+type ServiceOrderUpdate struct {
+	Accessories        *string             `json:"accessories,omitempty"`
+	CostCenterId       *openapi_types.UUID `json:"cost_center_id,omitempty"`
+	DevicePassword     *string             `json:"device_password,omitempty"`
+	Diagnosis          *string             `json:"diagnosis,omitempty"`
+	ExpectedDeliveryAt *time.Time          `json:"expected_delivery_at,omitempty"`
+	PreAuthorizedCents *int64              `json:"pre_authorized_cents,omitempty"`
+	RequesterContactId *openapi_types.UUID `json:"requester_contact_id,omitempty"`
+	TechnicalReport    *string             `json:"technical_report,omitempty"`
 }
 
 // ServiceUpdate defines model for ServiceUpdate.
@@ -884,6 +1405,22 @@ type SignupRequest struct {
 	} `json:"owner"`
 }
 
+// StatusChange defines model for StatusChange.
+type StatusChange struct {
+	CreatedAt  time.Time           `json:"created_at"`
+	DeviceId   *openapi_types.UUID `json:"device_id"`
+	FromStatus *OrderStatus        `json:"from_status"`
+	Id         openapi_types.UUID  `json:"id"`
+	Reason     *string             `json:"reason"`
+	ToStatus   OrderStatus         `json:"to_status"`
+	UserId     *openapi_types.UUID `json:"user_id"`
+}
+
+// StatusChangeList defines model for StatusChangeList.
+type StatusChangeList struct {
+	Items []StatusChange `json:"items"`
+}
+
 // Supplier defines model for Supplier.
 type Supplier struct {
 	Active      bool               `json:"active"`
@@ -937,6 +1474,16 @@ type Timestamps struct {
 	Version   int64     `json:"version"`
 }
 
+// Transition defines model for Transition.
+type Transition struct {
+	// Reason Required when the diagnosis ends without repair (diagnosing → awaiting_pickup).
+	Reason *string      `json:"reason,omitempty"`
+	To     TransitionTo `json:"to"`
+}
+
+// TransitionTo defines model for Transition.To.
+type TransitionTo string
+
 // User defines model for User.
 type User struct {
 	CreatedAt   time.Time          `json:"created_at"`
@@ -958,6 +1505,37 @@ type UserList struct {
 
 // UserStatus defines model for UserStatus.
 type UserStatus string
+
+// WarrantyItem defines model for WarrantyItem.
+type WarrantyItem struct {
+	DeliveredAt   *time.Time         `json:"delivered_at"`
+	Description   string             `json:"description"`
+	ItemId        openapi_types.UUID `json:"item_id"`
+	Kind          QuoteItemKind      `json:"kind"`
+	OrderId       openapi_types.UUID `json:"order_id"`
+	OrderNumber   string             `json:"order_number"`
+	WarrantyUntil openapi_types.Date `json:"warranty_until"`
+}
+
+// WarrantyReturn defines model for WarrantyReturn.
+type WarrantyReturn struct {
+	Accessories *string `json:"accessories,omitempty"`
+
+	// CoveredItemIds Warranty items to cover. Omit to cover every active one.
+	CoveredItemIds *[]openapi_types.UUID `json:"covered_item_ids,omitempty"`
+	DevicePassword *string               `json:"device_password,omitempty"`
+
+	// EntryChecklist Answers to the equipment type's entry checklist, by item key: a boolean for `check`
+	// items and a string for `text` items. Required items must be answered (RN-05).
+	EntryChecklist     EntryChecklist `json:"entry_checklist"`
+	ExpectedDeliveryAt *time.Time     `json:"expected_delivery_at,omitempty"`
+
+	// Id Optional UUIDv7 generated by the client. Repeating a create with the same id returns the existing record.
+	Id               *ClientId           `json:"id,omitempty"`
+	ReportedDefect   string              `json:"reported_defect"`
+	ReservedSequence *int64              `json:"reserved_sequence,omitempty"`
+	TechnicianId     *openapi_types.UUID `json:"technician_id,omitempty"`
+}
 
 // Active defines model for Active.
 type Active = bool
@@ -992,8 +1570,14 @@ type EquipmentTypeId = openapi_types.UUID
 // Limit defines model for Limit.
 type Limit = int
 
+// OrderId defines model for OrderId.
+type OrderId = openapi_types.UUID
+
 // ProductId defines model for ProductId.
 type ProductId = openapi_types.UUID
+
+// QuoteId defines model for QuoteId.
+type QuoteId = openapi_types.UUID
 
 // Search defines model for Search.
 type Search = string
@@ -1017,6 +1601,14 @@ type ListCustomersParams struct {
 	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
 }
 
+// GetCustomerHistoryParams defines parameters for GetCustomerHistory.
+type GetCustomerHistoryParams struct {
+	Limit *Limit `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor Opaque cursor returned as `next_cursor` by the previous page.
+	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
 // ListEquipmentParams defines parameters for ListEquipment.
 type ListEquipmentParams struct {
 	// Q Free-text search.
@@ -1026,6 +1618,14 @@ type ListEquipmentParams struct {
 	// SerialNumber Exact serial number (case-insensitive).
 	SerialNumber *string `form:"serial_number,omitempty" json:"serial_number,omitempty"`
 	Limit        *Limit  `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor Opaque cursor returned as `next_cursor` by the previous page.
+	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// GetEquipmentHistoryParams defines parameters for GetEquipmentHistory.
+type GetEquipmentHistoryParams struct {
+	Limit *Limit `form:"limit,omitempty" json:"limit,omitempty"`
 
 	// Cursor Opaque cursor returned as `next_cursor` by the previous page.
 	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
@@ -1042,6 +1642,124 @@ type ListProductsParams struct {
 
 	// Cursor Opaque cursor returned as `next_cursor` by the previous page.
 	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
+}
+
+// ListServiceOrdersParams defines parameters for ListServiceOrders.
+type ListServiceOrdersParams struct {
+	// Q Free-text search.
+	Q *Search `form:"q,omitempty" json:"q,omitempty"`
+
+	// Status One or more statuses (repeat the parameter).
+	Status       *[]OrderStatus      `form:"status,omitempty" json:"status,omitempty"`
+	TechnicianId *openapi_types.UUID `form:"technician_id,omitempty" json:"technician_id,omitempty"`
+
+	// Unassigned Only orders without a technician.
+	Unassigned  *bool               `form:"unassigned,omitempty" json:"unassigned,omitempty"`
+	CustomerId  *openapi_types.UUID `form:"customer_id,omitempty" json:"customer_id,omitempty"`
+	EquipmentId *openapi_types.UUID `form:"equipment_id,omitempty" json:"equipment_id,omitempty"`
+	Limit       *Limit              `form:"limit,omitempty" json:"limit,omitempty"`
+
+	// Cursor Opaque cursor returned as `next_cursor` by the previous page.
+	Cursor *Cursor `form:"cursor,omitempty" json:"cursor,omitempty"`
+
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// OpenServiceOrderParams defines parameters for OpenServiceOrder.
+type OpenServiceOrderParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// GetServiceOrderParams defines parameters for GetServiceOrder.
+type GetServiceOrderParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// UpdateServiceOrderParams defines parameters for UpdateServiceOrder.
+type UpdateServiceOrderParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// AbandonServiceOrderParams defines parameters for AbandonServiceOrder.
+type AbandonServiceOrderParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// AssignServiceOrderParams defines parameters for AssignServiceOrder.
+type AssignServiceOrderParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// CancelServiceOrderParams defines parameters for CancelServiceOrder.
+type CancelServiceOrderParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// DeliverServiceOrderParams defines parameters for DeliverServiceOrder.
+type DeliverServiceOrderParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// RevealDevicePasswordParams defines parameters for RevealDevicePassword.
+type RevealDevicePasswordParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// ListOrderStatusHistoryParams defines parameters for ListOrderStatusHistory.
+type ListOrderStatusHistoryParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// ListQuotesParams defines parameters for ListQuotes.
+type ListQuotesParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// CreateQuoteParams defines parameters for CreateQuote.
+type CreateQuoteParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// UpdateQuoteParams defines parameters for UpdateQuote.
+type UpdateQuoteParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// DecideQuoteParams defines parameters for DecideQuote.
+type DecideQuoteParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// SendQuoteParams defines parameters for SendQuote.
+type SendQuoteParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// TransitionServiceOrderParams defines parameters for TransitionServiceOrder.
+type TransitionServiceOrderParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
+}
+
+// OpenWarrantyReturnParams defines parameters for OpenWarrantyReturn.
+type OpenWarrantyReturnParams struct {
+	// XBranchID Branch the request acts on.
+	XBranchID BranchHeader `json:"X-Branch-ID"`
 }
 
 // ListServicesParams defines parameters for ListServices.
@@ -1136,6 +1854,39 @@ type CreateProductJSONRequestBody = ProductInput
 // UpdateProductJSONRequestBody defines body for UpdateProduct for application/json ContentType.
 type UpdateProductJSONRequestBody = ProductUpdate
 
+// OpenServiceOrderJSONRequestBody defines body for OpenServiceOrder for application/json ContentType.
+type OpenServiceOrderJSONRequestBody = ServiceOrderOpen
+
+// UpdateServiceOrderJSONRequestBody defines body for UpdateServiceOrder for application/json ContentType.
+type UpdateServiceOrderJSONRequestBody = ServiceOrderUpdate
+
+// AbandonServiceOrderJSONRequestBody defines body for AbandonServiceOrder for application/json ContentType.
+type AbandonServiceOrderJSONRequestBody = Abandonment
+
+// AssignServiceOrderJSONRequestBody defines body for AssignServiceOrder for application/json ContentType.
+type AssignServiceOrderJSONRequestBody = Assignment
+
+// CancelServiceOrderJSONRequestBody defines body for CancelServiceOrder for application/json ContentType.
+type CancelServiceOrderJSONRequestBody = Cancelation
+
+// DeliverServiceOrderJSONRequestBody defines body for DeliverServiceOrder for application/json ContentType.
+type DeliverServiceOrderJSONRequestBody = Delivery
+
+// CreateQuoteJSONRequestBody defines body for CreateQuote for application/json ContentType.
+type CreateQuoteJSONRequestBody = QuoteInput
+
+// UpdateQuoteJSONRequestBody defines body for UpdateQuote for application/json ContentType.
+type UpdateQuoteJSONRequestBody = QuoteUpdate
+
+// DecideQuoteJSONRequestBody defines body for DecideQuote for application/json ContentType.
+type DecideQuoteJSONRequestBody = QuoteDecision
+
+// TransitionServiceOrderJSONRequestBody defines body for TransitionServiceOrder for application/json ContentType.
+type TransitionServiceOrderJSONRequestBody = Transition
+
+// OpenWarrantyReturnJSONRequestBody defines body for OpenWarrantyReturn for application/json ContentType.
+type OpenWarrantyReturnJSONRequestBody = WarrantyReturn
+
 // CreateServiceJSONRequestBody defines body for CreateService for application/json ContentType.
 type CreateServiceJSONRequestBody = ServiceInput
 
@@ -1225,6 +1976,9 @@ type ServerInterface interface {
 
 	// (PATCH /v1/customers/{customerId}/cost-centers/{costCenterId})
 	UpdateCostCenter(c *gin.Context, customerId CustomerId, costCenterId CostCenterId)
+	// GetCustomerHistory Service orders of a customer in the branches the user can access (RF-35)
+	// (GET /v1/customers/{customerId}/history)
+	GetCustomerHistory(c *gin.Context, customerId CustomerId, params GetCustomerHistoryParams)
 	// ListDevices Installed desktop apps of the account
 	// (GET /v1/devices)
 	ListDevices(c *gin.Context)
@@ -1258,6 +2012,9 @@ type ServerInterface interface {
 
 	// (PATCH /v1/equipment/{equipmentId})
 	UpdateEquipment(c *gin.Context, equipmentId EquipmentId)
+	// GetEquipmentHistory Service orders of an equipment with its active warranties (RF-36)
+	// (GET /v1/equipment/{equipmentId}/history)
+	GetEquipmentHistory(c *gin.Context, equipmentId EquipmentId, params GetEquipmentHistoryParams)
 	// GetMe Current user, account, grants and accessible branches
 	// (GET /v1/me)
 	GetMe(c *gin.Context)
@@ -1276,6 +2033,57 @@ type ServerInterface interface {
 
 	// (PATCH /v1/products/{productId})
 	UpdateProduct(c *gin.Context, productId ProductId)
+	// ListServiceOrders Queue and search of the branch's orders (RF-11, RF-17)
+	// (GET /v1/service-orders)
+	ListServiceOrders(c *gin.Context, params ListServiceOrdersParams)
+	// OpenServiceOrder Open a service order (UC-01, RN-04, RN-05)
+	// (POST /v1/service-orders)
+	OpenServiceOrder(c *gin.Context, params OpenServiceOrderParams)
+
+	// (GET /v1/service-orders/{orderId})
+	GetServiceOrder(c *gin.Context, orderId OrderId, params GetServiceOrderParams)
+	// UpdateServiceOrder Record diagnosis, technical report and other details (RF-12, RF-14)
+	// (PATCH /v1/service-orders/{orderId})
+	UpdateServiceOrder(c *gin.Context, orderId OrderId, params UpdateServiceOrderParams)
+	// AbandonServiceOrder Mark the equipment as abandoned after the branch's term (RN-16)
+	// (POST /v1/service-orders/{orderId}/abandon)
+	AbandonServiceOrder(c *gin.Context, orderId OrderId, params AbandonServiceOrderParams)
+	// AssignServiceOrder Assign the technician and the priority (RF-11)
+	// (PATCH /v1/service-orders/{orderId}/assignment)
+	AssignServiceOrder(c *gin.Context, orderId OrderId, params AssignServiceOrderParams)
+	// CancelServiceOrder Cancel the order with a reason (RN-08)
+	// (POST /v1/service-orders/{orderId}/cancel)
+	CancelServiceOrder(c *gin.Context, orderId OrderId, params CancelServiceOrderParams)
+	// DeliverServiceOrder Hand the equipment back (UC-05, RN-15, RN-18, RN-31)
+	// (POST /v1/service-orders/{orderId}/deliver)
+	DeliverServiceOrder(c *gin.Context, orderId OrderId, params DeliverServiceOrderParams)
+	// RevealDevicePassword Show the equipment password; every access is audited (RN-31)
+	// (POST /v1/service-orders/{orderId}/device-password/reveal)
+	RevealDevicePassword(c *gin.Context, orderId OrderId, params RevealDevicePasswordParams)
+	// ListOrderStatusHistory Status changes of the order, oldest first (RN-07)
+	// (GET /v1/service-orders/{orderId}/history)
+	ListOrderStatusHistory(c *gin.Context, orderId OrderId, params ListOrderStatusHistoryParams)
+	// ListQuotes Every quote version of the order (RN-11)
+	// (GET /v1/service-orders/{orderId}/quotes)
+	ListQuotes(c *gin.Context, orderId OrderId, params ListQuotesParams)
+	// CreateQuote Start a quote draft (RF-12)
+	// (POST /v1/service-orders/{orderId}/quotes)
+	CreateQuote(c *gin.Context, orderId OrderId, params CreateQuoteParams)
+	// UpdateQuote Replace the notes and items of a draft
+	// (PUT /v1/service-orders/{orderId}/quotes/{quoteId})
+	UpdateQuote(c *gin.Context, orderId OrderId, quoteId QuoteId, params UpdateQuoteParams)
+	// DecideQuote Record the customer's approval or rejection (UC-03, RN-10, RN-14, RN-34)
+	// (POST /v1/service-orders/{orderId}/quotes/{quoteId}/decision)
+	DecideQuote(c *gin.Context, orderId OrderId, quoteId QuoteId, params DecideQuoteParams)
+	// SendQuote Send the draft to the customer (RN-09, RN-10, RN-11)
+	// (POST /v1/service-orders/{orderId}/quotes/{quoteId}/send)
+	SendQuote(c *gin.Context, orderId OrderId, quoteId QuoteId, params SendQuoteParams)
+	// TransitionServiceOrder Move the order through diagnosis and execution (section 8, RN-07)
+	// (POST /v1/service-orders/{orderId}/transitions)
+	TransitionServiceOrder(c *gin.Context, orderId OrderId, params TransitionServiceOrderParams)
+	// OpenWarrantyReturn Open a warranty return linked to a delivered order (UC-07, RN-19)
+	// (POST /v1/service-orders/{orderId}/warranty-return)
+	OpenWarrantyReturn(c *gin.Context, orderId OrderId, params OpenWarrantyReturnParams)
 	// ListServices Service catalog (RF-04)
 	// (GET /v1/services)
 	ListServices(c *gin.Context, params ListServicesParams)
@@ -1805,6 +2613,50 @@ func (siw *ServerInterfaceWrapper) UpdateCostCenter(c *gin.Context) {
 	siw.Handler.UpdateCostCenter(c, customerId, costCenterId)
 }
 
+// GetCustomerHistory operation middleware
+func (siw *ServerInterfaceWrapper) GetCustomerHistory(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "customerId" -------------
+	var customerId CustomerId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "customerId", c.Param("customerId"), &customerId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter customerId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetCustomerHistoryParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", c.Request.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter limit: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", c.Request.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter cursor: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetCustomerHistory(c, customerId, params)
+}
+
 // ListDevices operation middleware
 func (siw *ServerInterfaceWrapper) ListDevices(c *gin.Context) {
 
@@ -2066,6 +2918,50 @@ func (siw *ServerInterfaceWrapper) UpdateEquipment(c *gin.Context) {
 	siw.Handler.UpdateEquipment(c, equipmentId)
 }
 
+// GetEquipmentHistory operation middleware
+func (siw *ServerInterfaceWrapper) GetEquipmentHistory(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "equipmentId" -------------
+	var equipmentId EquipmentId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "equipmentId", c.Param("equipmentId"), &equipmentId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter equipmentId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetEquipmentHistoryParams
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", c.Request.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter limit: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", c.Request.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter cursor: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetEquipmentHistory(c, equipmentId, params)
+}
+
 // GetMe operation middleware
 func (siw *ServerInterfaceWrapper) GetMe(c *gin.Context) {
 
@@ -2216,6 +3112,963 @@ func (siw *ServerInterfaceWrapper) UpdateProduct(c *gin.Context) {
 	}
 
 	siw.Handler.UpdateProduct(c, productId)
+}
+
+// ListServiceOrders operation middleware
+func (siw *ServerInterfaceWrapper) ListServiceOrders(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListServiceOrdersParams
+
+	// ------------- Optional query parameter "q" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "q", c.Request.URL.Query(), &params.Q, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter q: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "status" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "status", c.Request.URL.Query(), &params.Status, runtime.BindQueryParameterOptions{Type: "array", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter status: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "technician_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "technician_id", c.Request.URL.Query(), &params.TechnicianId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter technician_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "unassigned" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "unassigned", c.Request.URL.Query(), &params.Unassigned, runtime.BindQueryParameterOptions{Type: "boolean", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter unassigned: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "customer_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "customer_id", c.Request.URL.Query(), &params.CustomerId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter customer_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "equipment_id" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "equipment_id", c.Request.URL.Query(), &params.EquipmentId, runtime.BindQueryParameterOptions{Type: "string", Format: "uuid"})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter equipment_id: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "limit" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "limit", c.Request.URL.Query(), &params.Limit, runtime.BindQueryParameterOptions{Type: "integer", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter limit: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Optional query parameter "cursor" -------------
+
+	err = runtime.BindQueryParameterWithOptions("form", true, false, "cursor", c.Request.URL.Query(), &params.Cursor, runtime.BindQueryParameterOptions{Type: "string", Format: ""})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter cursor: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListServiceOrders(c, params)
+}
+
+// OpenServiceOrder operation middleware
+func (siw *ServerInterfaceWrapper) OpenServiceOrder(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params OpenServiceOrderParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.OpenServiceOrder(c, params)
+}
+
+// GetServiceOrder operation middleware
+func (siw *ServerInterfaceWrapper) GetServiceOrder(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params GetServiceOrderParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.GetServiceOrder(c, orderId, params)
+}
+
+// UpdateServiceOrder operation middleware
+func (siw *ServerInterfaceWrapper) UpdateServiceOrder(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateServiceOrderParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateServiceOrder(c, orderId, params)
+}
+
+// AbandonServiceOrder operation middleware
+func (siw *ServerInterfaceWrapper) AbandonServiceOrder(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AbandonServiceOrderParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AbandonServiceOrder(c, orderId, params)
+}
+
+// AssignServiceOrder operation middleware
+func (siw *ServerInterfaceWrapper) AssignServiceOrder(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params AssignServiceOrderParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.AssignServiceOrder(c, orderId, params)
+}
+
+// CancelServiceOrder operation middleware
+func (siw *ServerInterfaceWrapper) CancelServiceOrder(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CancelServiceOrderParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CancelServiceOrder(c, orderId, params)
+}
+
+// DeliverServiceOrder operation middleware
+func (siw *ServerInterfaceWrapper) DeliverServiceOrder(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DeliverServiceOrderParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DeliverServiceOrder(c, orderId, params)
+}
+
+// RevealDevicePassword operation middleware
+func (siw *ServerInterfaceWrapper) RevealDevicePassword(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params RevealDevicePasswordParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.RevealDevicePassword(c, orderId, params)
+}
+
+// ListOrderStatusHistory operation middleware
+func (siw *ServerInterfaceWrapper) ListOrderStatusHistory(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListOrderStatusHistoryParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListOrderStatusHistory(c, orderId, params)
+}
+
+// ListQuotes operation middleware
+func (siw *ServerInterfaceWrapper) ListQuotes(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params ListQuotesParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.ListQuotes(c, orderId, params)
+}
+
+// CreateQuote operation middleware
+func (siw *ServerInterfaceWrapper) CreateQuote(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params CreateQuoteParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.CreateQuote(c, orderId, params)
+}
+
+// UpdateQuote operation middleware
+func (siw *ServerInterfaceWrapper) UpdateQuote(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "quoteId" -------------
+	var quoteId QuoteId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "quoteId", c.Param("quoteId"), &quoteId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter quoteId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params UpdateQuoteParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.UpdateQuote(c, orderId, quoteId, params)
+}
+
+// DecideQuote operation middleware
+func (siw *ServerInterfaceWrapper) DecideQuote(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "quoteId" -------------
+	var quoteId QuoteId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "quoteId", c.Param("quoteId"), &quoteId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter quoteId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params DecideQuoteParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.DecideQuote(c, orderId, quoteId, params)
+}
+
+// SendQuote operation middleware
+func (siw *ServerInterfaceWrapper) SendQuote(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// ------------- Path parameter "quoteId" -------------
+	var quoteId QuoteId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "quoteId", c.Param("quoteId"), &quoteId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter quoteId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params SendQuoteParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.SendQuote(c, orderId, quoteId, params)
+}
+
+// TransitionServiceOrder operation middleware
+func (siw *ServerInterfaceWrapper) TransitionServiceOrder(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params TransitionServiceOrderParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.TransitionServiceOrder(c, orderId, params)
+}
+
+// OpenWarrantyReturn operation middleware
+func (siw *ServerInterfaceWrapper) OpenWarrantyReturn(c *gin.Context) {
+
+	var err error
+	_ = err
+
+	// ------------- Path parameter "orderId" -------------
+	var orderId OrderId
+
+	err = runtime.BindStyledParameterWithOptions("simple", "orderId", c.Param("orderId"), &orderId, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationPath, Explode: false, Required: true, Type: "string", Format: "uuid", ValueIsUnescaped: true})
+	if err != nil {
+		siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter orderId: %w", err), http.StatusBadRequest)
+		return
+	}
+
+	// Parameter object where we will unmarshal all parameters from the context
+	var params OpenWarrantyReturnParams
+
+	headers := c.Request.Header
+
+	// ------------- Required header parameter "X-Branch-ID" -------------
+	if valueList, found := headers[http.CanonicalHeaderKey("X-Branch-ID")]; found {
+		var XBranchID BranchHeader
+		n := len(valueList)
+		if n != 1 {
+			siw.ErrorHandler(c, fmt.Errorf("Expected one value for X-Branch-ID, got %d", n), http.StatusBadRequest)
+			return
+		}
+
+		err = runtime.BindStyledParameterWithOptions("simple", "X-Branch-ID", valueList[0], &XBranchID, runtime.BindStyledParameterOptions{ParamLocation: runtime.ParamLocationHeader, Explode: false, Required: true, Type: "string", Format: "uuid"})
+		if err != nil {
+			siw.ErrorHandler(c, fmt.Errorf("Invalid format for parameter X-Branch-ID: %w", err), http.StatusBadRequest)
+			return
+		}
+
+		params.XBranchID = XBranchID
+
+	} else {
+		siw.ErrorHandler(c, fmt.Errorf("Header parameter X-Branch-ID is required, but not found"), http.StatusBadRequest)
+		return
+	}
+
+	for _, middleware := range siw.HandlerMiddlewares {
+		middleware(c)
+		if c.IsAborted() {
+			return
+		}
+	}
+
+	siw.Handler.OpenWarrantyReturn(c, orderId, params)
 }
 
 // ListServices operation middleware
@@ -2653,6 +4506,25 @@ func RegisterHandlersWithOptions(router gin.IRouter, si ServerInterface, options
 	router.GET(options.BaseURL+"/v1/suppliers/:supplierId", wrapper.GetSupplier)
 	router.PATCH(options.BaseURL+"/v1/suppliers/:supplierId", wrapper.UpdateSupplier)
 	router.POST(options.BaseURL+"/v1/niche-packs/:packCode/apply", wrapper.ApplyNichePack)
+	router.GET(options.BaseURL+"/v1/customers/:customerId/history", wrapper.GetCustomerHistory)
+	router.GET(options.BaseURL+"/v1/equipment/:equipmentId/history", wrapper.GetEquipmentHistory)
+	router.GET(options.BaseURL+"/v1/service-orders", wrapper.ListServiceOrders)
+	router.POST(options.BaseURL+"/v1/service-orders", wrapper.OpenServiceOrder)
+	router.GET(options.BaseURL+"/v1/service-orders/:orderId", wrapper.GetServiceOrder)
+	router.PATCH(options.BaseURL+"/v1/service-orders/:orderId", wrapper.UpdateServiceOrder)
+	router.PATCH(options.BaseURL+"/v1/service-orders/:orderId/assignment", wrapper.AssignServiceOrder)
+	router.POST(options.BaseURL+"/v1/service-orders/:orderId/transitions", wrapper.TransitionServiceOrder)
+	router.GET(options.BaseURL+"/v1/service-orders/:orderId/history", wrapper.ListOrderStatusHistory)
+	router.POST(options.BaseURL+"/v1/service-orders/:orderId/device-password/reveal", wrapper.RevealDevicePassword)
+	router.GET(options.BaseURL+"/v1/service-orders/:orderId/quotes", wrapper.ListQuotes)
+	router.POST(options.BaseURL+"/v1/service-orders/:orderId/quotes", wrapper.CreateQuote)
+	router.PUT(options.BaseURL+"/v1/service-orders/:orderId/quotes/:quoteId", wrapper.UpdateQuote)
+	router.POST(options.BaseURL+"/v1/service-orders/:orderId/quotes/:quoteId/send", wrapper.SendQuote)
+	router.POST(options.BaseURL+"/v1/service-orders/:orderId/quotes/:quoteId/decision", wrapper.DecideQuote)
+	router.POST(options.BaseURL+"/v1/service-orders/:orderId/deliver", wrapper.DeliverServiceOrder)
+	router.POST(options.BaseURL+"/v1/service-orders/:orderId/cancel", wrapper.CancelServiceOrder)
+	router.POST(options.BaseURL+"/v1/service-orders/:orderId/abandon", wrapper.AbandonServiceOrder)
+	router.POST(options.BaseURL+"/v1/service-orders/:orderId/warranty-return", wrapper.OpenWarrantyReturn)
 }
 
 type ProblemApplicationProblemPlusJSONResponse Problem
@@ -3531,6 +5403,46 @@ func (response UpdateCostCenterdefaultApplicationProblemPlusJSONResponse) VisitU
 	return err
 }
 
+type GetCustomerHistoryRequestObject struct {
+	CustomerId CustomerId `json:"customerId"`
+	Params     GetCustomerHistoryParams
+}
+
+type GetCustomerHistoryResponseObject interface {
+	VisitGetCustomerHistoryResponse(w http.ResponseWriter) error
+}
+
+type GetCustomerHistory200JSONResponse ServiceOrderList
+
+func (response GetCustomerHistory200JSONResponse) VisitGetCustomerHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetCustomerHistorydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetCustomerHistorydefaultApplicationProblemPlusJSONResponse) VisitGetCustomerHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type ListDevicesRequestObject struct {
 }
 
@@ -3961,6 +5873,46 @@ func (response UpdateEquipmentdefaultApplicationProblemPlusJSONResponse) VisitUp
 	return err
 }
 
+type GetEquipmentHistoryRequestObject struct {
+	EquipmentId EquipmentId `json:"equipmentId"`
+	Params      GetEquipmentHistoryParams
+}
+
+type GetEquipmentHistoryResponseObject interface {
+	VisitGetEquipmentHistoryResponse(w http.ResponseWriter) error
+}
+
+type GetEquipmentHistory200JSONResponse EquipmentHistory
+
+func (response GetEquipmentHistory200JSONResponse) VisitGetEquipmentHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetEquipmentHistorydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetEquipmentHistorydefaultApplicationProblemPlusJSONResponse) VisitGetEquipmentHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
 type GetMeRequestObject struct {
 }
 
@@ -4184,6 +6136,698 @@ type UpdateProductdefaultApplicationProblemPlusJSONResponse struct {
 }
 
 func (response UpdateProductdefaultApplicationProblemPlusJSONResponse) VisitUpdateProductResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListServiceOrdersRequestObject struct {
+	Params ListServiceOrdersParams
+}
+
+type ListServiceOrdersResponseObject interface {
+	VisitListServiceOrdersResponse(w http.ResponseWriter) error
+}
+
+type ListServiceOrders200JSONResponse ServiceOrderList
+
+func (response ListServiceOrders200JSONResponse) VisitListServiceOrdersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListServiceOrdersdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListServiceOrdersdefaultApplicationProblemPlusJSONResponse) VisitListServiceOrdersResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type OpenServiceOrderRequestObject struct {
+	Params OpenServiceOrderParams
+	Body   *OpenServiceOrderJSONRequestBody
+}
+
+type OpenServiceOrderResponseObject interface {
+	VisitOpenServiceOrderResponse(w http.ResponseWriter) error
+}
+
+type OpenServiceOrder201JSONResponse ServiceOrderOpened
+
+func (response OpenServiceOrder201JSONResponse) VisitOpenServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type OpenServiceOrderdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response OpenServiceOrderdefaultApplicationProblemPlusJSONResponse) VisitOpenServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetServiceOrderRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	Params  GetServiceOrderParams
+}
+
+type GetServiceOrderResponseObject interface {
+	VisitGetServiceOrderResponse(w http.ResponseWriter) error
+}
+
+type GetServiceOrder200JSONResponse ServiceOrder
+
+func (response GetServiceOrder200JSONResponse) VisitGetServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type GetServiceOrderdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response GetServiceOrderdefaultApplicationProblemPlusJSONResponse) VisitGetServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServiceOrderRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	Params  UpdateServiceOrderParams
+	Body    *UpdateServiceOrderJSONRequestBody
+}
+
+type UpdateServiceOrderResponseObject interface {
+	VisitUpdateServiceOrderResponse(w http.ResponseWriter) error
+}
+
+type UpdateServiceOrder200JSONResponse ServiceOrder
+
+func (response UpdateServiceOrder200JSONResponse) VisitUpdateServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateServiceOrderdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateServiceOrderdefaultApplicationProblemPlusJSONResponse) VisitUpdateServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AbandonServiceOrderRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	Params  AbandonServiceOrderParams
+	Body    *AbandonServiceOrderJSONRequestBody
+}
+
+type AbandonServiceOrderResponseObject interface {
+	VisitAbandonServiceOrderResponse(w http.ResponseWriter) error
+}
+
+type AbandonServiceOrder200JSONResponse ServiceOrder
+
+func (response AbandonServiceOrder200JSONResponse) VisitAbandonServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AbandonServiceOrderdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AbandonServiceOrderdefaultApplicationProblemPlusJSONResponse) VisitAbandonServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AssignServiceOrderRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	Params  AssignServiceOrderParams
+	Body    *AssignServiceOrderJSONRequestBody
+}
+
+type AssignServiceOrderResponseObject interface {
+	VisitAssignServiceOrderResponse(w http.ResponseWriter) error
+}
+
+type AssignServiceOrder200JSONResponse ServiceOrder
+
+func (response AssignServiceOrder200JSONResponse) VisitAssignServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type AssignServiceOrderdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response AssignServiceOrderdefaultApplicationProblemPlusJSONResponse) VisitAssignServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CancelServiceOrderRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	Params  CancelServiceOrderParams
+	Body    *CancelServiceOrderJSONRequestBody
+}
+
+type CancelServiceOrderResponseObject interface {
+	VisitCancelServiceOrderResponse(w http.ResponseWriter) error
+}
+
+type CancelServiceOrder200JSONResponse ServiceOrder
+
+func (response CancelServiceOrder200JSONResponse) VisitCancelServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CancelServiceOrderdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CancelServiceOrderdefaultApplicationProblemPlusJSONResponse) VisitCancelServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeliverServiceOrderRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	Params  DeliverServiceOrderParams
+	Body    *DeliverServiceOrderJSONRequestBody
+}
+
+type DeliverServiceOrderResponseObject interface {
+	VisitDeliverServiceOrderResponse(w http.ResponseWriter) error
+}
+
+type DeliverServiceOrder200JSONResponse ServiceOrder
+
+func (response DeliverServiceOrder200JSONResponse) VisitDeliverServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DeliverServiceOrderdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DeliverServiceOrderdefaultApplicationProblemPlusJSONResponse) VisitDeliverServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevealDevicePasswordRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	Params  RevealDevicePasswordParams
+}
+
+type RevealDevicePasswordResponseObject interface {
+	VisitRevealDevicePasswordResponse(w http.ResponseWriter) error
+}
+
+type RevealDevicePassword200JSONResponse DevicePassword
+
+func (response RevealDevicePassword200JSONResponse) VisitRevealDevicePasswordResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type RevealDevicePassworddefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response RevealDevicePassworddefaultApplicationProblemPlusJSONResponse) VisitRevealDevicePasswordResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListOrderStatusHistoryRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	Params  ListOrderStatusHistoryParams
+}
+
+type ListOrderStatusHistoryResponseObject interface {
+	VisitListOrderStatusHistoryResponse(w http.ResponseWriter) error
+}
+
+type ListOrderStatusHistory200JSONResponse StatusChangeList
+
+func (response ListOrderStatusHistory200JSONResponse) VisitListOrderStatusHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListOrderStatusHistorydefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListOrderStatusHistorydefaultApplicationProblemPlusJSONResponse) VisitListOrderStatusHistoryResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListQuotesRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	Params  ListQuotesParams
+}
+
+type ListQuotesResponseObject interface {
+	VisitListQuotesResponse(w http.ResponseWriter) error
+}
+
+type ListQuotes200JSONResponse QuoteList
+
+func (response ListQuotes200JSONResponse) VisitListQuotesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type ListQuotesdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response ListQuotesdefaultApplicationProblemPlusJSONResponse) VisitListQuotesResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateQuoteRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	Params  CreateQuoteParams
+	Body    *CreateQuoteJSONRequestBody
+}
+
+type CreateQuoteResponseObject interface {
+	VisitCreateQuoteResponse(w http.ResponseWriter) error
+}
+
+type CreateQuote201JSONResponse Quote
+
+func (response CreateQuote201JSONResponse) VisitCreateQuoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type CreateQuotedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response CreateQuotedefaultApplicationProblemPlusJSONResponse) VisitCreateQuoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateQuoteRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	QuoteId QuoteId `json:"quoteId"`
+	Params  UpdateQuoteParams
+	Body    *UpdateQuoteJSONRequestBody
+}
+
+type UpdateQuoteResponseObject interface {
+	VisitUpdateQuoteResponse(w http.ResponseWriter) error
+}
+
+type UpdateQuote200JSONResponse Quote
+
+func (response UpdateQuote200JSONResponse) VisitUpdateQuoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type UpdateQuotedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response UpdateQuotedefaultApplicationProblemPlusJSONResponse) VisitUpdateQuoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DecideQuoteRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	QuoteId QuoteId `json:"quoteId"`
+	Params  DecideQuoteParams
+	Body    *DecideQuoteJSONRequestBody
+}
+
+type DecideQuoteResponseObject interface {
+	VisitDecideQuoteResponse(w http.ResponseWriter) error
+}
+
+type DecideQuote200JSONResponse OrderQuote
+
+func (response DecideQuote200JSONResponse) VisitDecideQuoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type DecideQuotedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response DecideQuotedefaultApplicationProblemPlusJSONResponse) VisitDecideQuoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SendQuoteRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	QuoteId QuoteId `json:"quoteId"`
+	Params  SendQuoteParams
+}
+
+type SendQuoteResponseObject interface {
+	VisitSendQuoteResponse(w http.ResponseWriter) error
+}
+
+type SendQuote200JSONResponse OrderQuote
+
+func (response SendQuote200JSONResponse) VisitSendQuoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type SendQuotedefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response SendQuotedefaultApplicationProblemPlusJSONResponse) VisitSendQuoteResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TransitionServiceOrderRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	Params  TransitionServiceOrderParams
+	Body    *TransitionServiceOrderJSONRequestBody
+}
+
+type TransitionServiceOrderResponseObject interface {
+	VisitTransitionServiceOrderResponse(w http.ResponseWriter) error
+}
+
+type TransitionServiceOrder200JSONResponse ServiceOrder
+
+func (response TransitionServiceOrder200JSONResponse) VisitTransitionServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(200)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type TransitionServiceOrderdefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response TransitionServiceOrderdefaultApplicationProblemPlusJSONResponse) VisitTransitionServiceOrderResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/problem+json")
+	w.WriteHeader(response.StatusCode)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type OpenWarrantyReturnRequestObject struct {
+	OrderId OrderId `json:"orderId"`
+	Params  OpenWarrantyReturnParams
+	Body    *OpenWarrantyReturnJSONRequestBody
+}
+
+type OpenWarrantyReturnResponseObject interface {
+	VisitOpenWarrantyReturnResponse(w http.ResponseWriter) error
+}
+
+type OpenWarrantyReturn201JSONResponse ServiceOrderOpened
+
+func (response OpenWarrantyReturn201JSONResponse) VisitOpenWarrantyReturnResponse(w http.ResponseWriter) error {
+
+	var buf bytes.Buffer
+	if err := runtime.JSONMarshalWrite(&buf, response); err != nil {
+		return err
+	}
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(201)
+	_, err := buf.WriteTo(w)
+	return err
+}
+
+type OpenWarrantyReturndefaultApplicationProblemPlusJSONResponse struct {
+	Body       Problem
+	StatusCode int
+}
+
+func (response OpenWarrantyReturndefaultApplicationProblemPlusJSONResponse) VisitOpenWarrantyReturnResponse(w http.ResponseWriter) error {
 
 	var buf bytes.Buffer
 	if err := runtime.JSONMarshalWrite(&buf, response.Body); err != nil {
@@ -4814,6 +7458,9 @@ type StrictServerInterface interface {
 
 	// (PATCH /v1/customers/{customerId}/cost-centers/{costCenterId})
 	UpdateCostCenter(ctx context.Context, request UpdateCostCenterRequestObject) (UpdateCostCenterResponseObject, error)
+	// GetCustomerHistory Service orders of a customer in the branches the user can access (RF-35)
+	// (GET /v1/customers/{customerId}/history)
+	GetCustomerHistory(ctx context.Context, request GetCustomerHistoryRequestObject) (GetCustomerHistoryResponseObject, error)
 	// ListDevices Installed desktop apps of the account
 	// (GET /v1/devices)
 	ListDevices(ctx context.Context, request ListDevicesRequestObject) (ListDevicesResponseObject, error)
@@ -4847,6 +7494,9 @@ type StrictServerInterface interface {
 
 	// (PATCH /v1/equipment/{equipmentId})
 	UpdateEquipment(ctx context.Context, request UpdateEquipmentRequestObject) (UpdateEquipmentResponseObject, error)
+	// GetEquipmentHistory Service orders of an equipment with its active warranties (RF-36)
+	// (GET /v1/equipment/{equipmentId}/history)
+	GetEquipmentHistory(ctx context.Context, request GetEquipmentHistoryRequestObject) (GetEquipmentHistoryResponseObject, error)
 	// GetMe Current user, account, grants and accessible branches
 	// (GET /v1/me)
 	GetMe(ctx context.Context, request GetMeRequestObject) (GetMeResponseObject, error)
@@ -4865,6 +7515,57 @@ type StrictServerInterface interface {
 
 	// (PATCH /v1/products/{productId})
 	UpdateProduct(ctx context.Context, request UpdateProductRequestObject) (UpdateProductResponseObject, error)
+	// ListServiceOrders Queue and search of the branch's orders (RF-11, RF-17)
+	// (GET /v1/service-orders)
+	ListServiceOrders(ctx context.Context, request ListServiceOrdersRequestObject) (ListServiceOrdersResponseObject, error)
+	// OpenServiceOrder Open a service order (UC-01, RN-04, RN-05)
+	// (POST /v1/service-orders)
+	OpenServiceOrder(ctx context.Context, request OpenServiceOrderRequestObject) (OpenServiceOrderResponseObject, error)
+
+	// (GET /v1/service-orders/{orderId})
+	GetServiceOrder(ctx context.Context, request GetServiceOrderRequestObject) (GetServiceOrderResponseObject, error)
+	// UpdateServiceOrder Record diagnosis, technical report and other details (RF-12, RF-14)
+	// (PATCH /v1/service-orders/{orderId})
+	UpdateServiceOrder(ctx context.Context, request UpdateServiceOrderRequestObject) (UpdateServiceOrderResponseObject, error)
+	// AbandonServiceOrder Mark the equipment as abandoned after the branch's term (RN-16)
+	// (POST /v1/service-orders/{orderId}/abandon)
+	AbandonServiceOrder(ctx context.Context, request AbandonServiceOrderRequestObject) (AbandonServiceOrderResponseObject, error)
+	// AssignServiceOrder Assign the technician and the priority (RF-11)
+	// (PATCH /v1/service-orders/{orderId}/assignment)
+	AssignServiceOrder(ctx context.Context, request AssignServiceOrderRequestObject) (AssignServiceOrderResponseObject, error)
+	// CancelServiceOrder Cancel the order with a reason (RN-08)
+	// (POST /v1/service-orders/{orderId}/cancel)
+	CancelServiceOrder(ctx context.Context, request CancelServiceOrderRequestObject) (CancelServiceOrderResponseObject, error)
+	// DeliverServiceOrder Hand the equipment back (UC-05, RN-15, RN-18, RN-31)
+	// (POST /v1/service-orders/{orderId}/deliver)
+	DeliverServiceOrder(ctx context.Context, request DeliverServiceOrderRequestObject) (DeliverServiceOrderResponseObject, error)
+	// RevealDevicePassword Show the equipment password; every access is audited (RN-31)
+	// (POST /v1/service-orders/{orderId}/device-password/reveal)
+	RevealDevicePassword(ctx context.Context, request RevealDevicePasswordRequestObject) (RevealDevicePasswordResponseObject, error)
+	// ListOrderStatusHistory Status changes of the order, oldest first (RN-07)
+	// (GET /v1/service-orders/{orderId}/history)
+	ListOrderStatusHistory(ctx context.Context, request ListOrderStatusHistoryRequestObject) (ListOrderStatusHistoryResponseObject, error)
+	// ListQuotes Every quote version of the order (RN-11)
+	// (GET /v1/service-orders/{orderId}/quotes)
+	ListQuotes(ctx context.Context, request ListQuotesRequestObject) (ListQuotesResponseObject, error)
+	// CreateQuote Start a quote draft (RF-12)
+	// (POST /v1/service-orders/{orderId}/quotes)
+	CreateQuote(ctx context.Context, request CreateQuoteRequestObject) (CreateQuoteResponseObject, error)
+	// UpdateQuote Replace the notes and items of a draft
+	// (PUT /v1/service-orders/{orderId}/quotes/{quoteId})
+	UpdateQuote(ctx context.Context, request UpdateQuoteRequestObject) (UpdateQuoteResponseObject, error)
+	// DecideQuote Record the customer's approval or rejection (UC-03, RN-10, RN-14, RN-34)
+	// (POST /v1/service-orders/{orderId}/quotes/{quoteId}/decision)
+	DecideQuote(ctx context.Context, request DecideQuoteRequestObject) (DecideQuoteResponseObject, error)
+	// SendQuote Send the draft to the customer (RN-09, RN-10, RN-11)
+	// (POST /v1/service-orders/{orderId}/quotes/{quoteId}/send)
+	SendQuote(ctx context.Context, request SendQuoteRequestObject) (SendQuoteResponseObject, error)
+	// TransitionServiceOrder Move the order through diagnosis and execution (section 8, RN-07)
+	// (POST /v1/service-orders/{orderId}/transitions)
+	TransitionServiceOrder(ctx context.Context, request TransitionServiceOrderRequestObject) (TransitionServiceOrderResponseObject, error)
+	// OpenWarrantyReturn Open a warranty return linked to a delivered order (UC-07, RN-19)
+	// (POST /v1/service-orders/{orderId}/warranty-return)
+	OpenWarrantyReturn(ctx context.Context, request OpenWarrantyReturnRequestObject) (OpenWarrantyReturnResponseObject, error)
 	// ListServices Service catalog (RF-04)
 	// (GET /v1/services)
 	ListServices(ctx context.Context, request ListServicesRequestObject) (ListServicesResponseObject, error)
@@ -5816,6 +8517,33 @@ func (sh *strictHandler) UpdateCostCenter(ctx *gin.Context, customerId CustomerI
 	}
 }
 
+// GetCustomerHistory operation middleware
+func (sh *strictHandler) GetCustomerHistory(ctx *gin.Context, customerId CustomerId, params GetCustomerHistoryParams) {
+	var request GetCustomerHistoryRequestObject
+
+	request.CustomerId = customerId
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.GetCustomerHistory(ctx, request.(GetCustomerHistoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetCustomerHistory")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(GetCustomerHistoryResponseObject); ok {
+		if err := validResponse.VisitGetCustomerHistoryResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // ListDevices operation middleware
 func (sh *strictHandler) ListDevices(ctx *gin.Context) {
 	var request ListDevicesRequestObject
@@ -6187,6 +8915,33 @@ func (sh *strictHandler) UpdateEquipment(ctx *gin.Context, equipmentId Equipment
 	}
 }
 
+// GetEquipmentHistory operation middleware
+func (sh *strictHandler) GetEquipmentHistory(ctx *gin.Context, equipmentId EquipmentId, params GetEquipmentHistoryParams) {
+	var request GetEquipmentHistoryRequestObject
+
+	request.EquipmentId = equipmentId
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.GetEquipmentHistory(ctx, request.(GetEquipmentHistoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetEquipmentHistory")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(GetEquipmentHistoryResponseObject); ok {
+		if err := validResponse.VisitGetEquipmentHistoryResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
 // GetMe operation middleware
 func (sh *strictHandler) GetMe(ctx *gin.Context) {
 	var request GetMeRequestObject
@@ -6368,6 +9123,667 @@ func (sh *strictHandler) UpdateProduct(ctx *gin.Context, productId ProductId) {
 		sh.options.HandlerErrorFunc(ctx, err)
 	} else if validResponse, ok := response.(UpdateProductResponseObject); ok {
 		if err := validResponse.VisitUpdateProductResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListServiceOrders operation middleware
+func (sh *strictHandler) ListServiceOrders(ctx *gin.Context, params ListServiceOrdersParams) {
+	var request ListServiceOrdersRequestObject
+
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.ListServiceOrders(ctx, request.(ListServiceOrdersRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListServiceOrders")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(ListServiceOrdersResponseObject); ok {
+		if err := validResponse.VisitListServiceOrdersResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// OpenServiceOrder operation middleware
+func (sh *strictHandler) OpenServiceOrder(ctx *gin.Context, params OpenServiceOrderParams) {
+	var request OpenServiceOrderRequestObject
+
+	request.Params = params
+
+	var body OpenServiceOrderJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.OpenServiceOrder(ctx, request.(OpenServiceOrderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "OpenServiceOrder")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(OpenServiceOrderResponseObject); ok {
+		if err := validResponse.VisitOpenServiceOrderResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// GetServiceOrder operation middleware
+func (sh *strictHandler) GetServiceOrder(ctx *gin.Context, orderId OrderId, params GetServiceOrderParams) {
+	var request GetServiceOrderRequestObject
+
+	request.OrderId = orderId
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.GetServiceOrder(ctx, request.(GetServiceOrderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "GetServiceOrder")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(GetServiceOrderResponseObject); ok {
+		if err := validResponse.VisitGetServiceOrderResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateServiceOrder operation middleware
+func (sh *strictHandler) UpdateServiceOrder(ctx *gin.Context, orderId OrderId, params UpdateServiceOrderParams) {
+	var request UpdateServiceOrderRequestObject
+
+	request.OrderId = orderId
+	request.Params = params
+
+	var body UpdateServiceOrderJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.UpdateServiceOrder(ctx, request.(UpdateServiceOrderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateServiceOrder")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(UpdateServiceOrderResponseObject); ok {
+		if err := validResponse.VisitUpdateServiceOrderResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AbandonServiceOrder operation middleware
+func (sh *strictHandler) AbandonServiceOrder(ctx *gin.Context, orderId OrderId, params AbandonServiceOrderParams) {
+	var request AbandonServiceOrderRequestObject
+
+	request.OrderId = orderId
+	request.Params = params
+
+	var body AbandonServiceOrderJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		if !errors.Is(err, io.EOF) {
+			sh.options.RequestErrorHandlerFunc(ctx, err)
+			return
+		}
+	} else {
+		request.Body = &body
+	}
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.AbandonServiceOrder(ctx, request.(AbandonServiceOrderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AbandonServiceOrder")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(AbandonServiceOrderResponseObject); ok {
+		if err := validResponse.VisitAbandonServiceOrderResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// AssignServiceOrder operation middleware
+func (sh *strictHandler) AssignServiceOrder(ctx *gin.Context, orderId OrderId, params AssignServiceOrderParams) {
+	var request AssignServiceOrderRequestObject
+
+	request.OrderId = orderId
+	request.Params = params
+
+	var body AssignServiceOrderJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.AssignServiceOrder(ctx, request.(AssignServiceOrderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "AssignServiceOrder")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(AssignServiceOrderResponseObject); ok {
+		if err := validResponse.VisitAssignServiceOrderResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CancelServiceOrder operation middleware
+func (sh *strictHandler) CancelServiceOrder(ctx *gin.Context, orderId OrderId, params CancelServiceOrderParams) {
+	var request CancelServiceOrderRequestObject
+
+	request.OrderId = orderId
+	request.Params = params
+
+	var body CancelServiceOrderJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.CancelServiceOrder(ctx, request.(CancelServiceOrderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CancelServiceOrder")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(CancelServiceOrderResponseObject); ok {
+		if err := validResponse.VisitCancelServiceOrderResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DeliverServiceOrder operation middleware
+func (sh *strictHandler) DeliverServiceOrder(ctx *gin.Context, orderId OrderId, params DeliverServiceOrderParams) {
+	var request DeliverServiceOrderRequestObject
+
+	request.OrderId = orderId
+	request.Params = params
+
+	var body DeliverServiceOrderJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.DeliverServiceOrder(ctx, request.(DeliverServiceOrderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DeliverServiceOrder")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(DeliverServiceOrderResponseObject); ok {
+		if err := validResponse.VisitDeliverServiceOrderResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// RevealDevicePassword operation middleware
+func (sh *strictHandler) RevealDevicePassword(ctx *gin.Context, orderId OrderId, params RevealDevicePasswordParams) {
+	var request RevealDevicePasswordRequestObject
+
+	request.OrderId = orderId
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.RevealDevicePassword(ctx, request.(RevealDevicePasswordRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "RevealDevicePassword")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(RevealDevicePasswordResponseObject); ok {
+		if err := validResponse.VisitRevealDevicePasswordResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListOrderStatusHistory operation middleware
+func (sh *strictHandler) ListOrderStatusHistory(ctx *gin.Context, orderId OrderId, params ListOrderStatusHistoryParams) {
+	var request ListOrderStatusHistoryRequestObject
+
+	request.OrderId = orderId
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.ListOrderStatusHistory(ctx, request.(ListOrderStatusHistoryRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListOrderStatusHistory")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(ListOrderStatusHistoryResponseObject); ok {
+		if err := validResponse.VisitListOrderStatusHistoryResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// ListQuotes operation middleware
+func (sh *strictHandler) ListQuotes(ctx *gin.Context, orderId OrderId, params ListQuotesParams) {
+	var request ListQuotesRequestObject
+
+	request.OrderId = orderId
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.ListQuotes(ctx, request.(ListQuotesRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "ListQuotes")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(ListQuotesResponseObject); ok {
+		if err := validResponse.VisitListQuotesResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// CreateQuote operation middleware
+func (sh *strictHandler) CreateQuote(ctx *gin.Context, orderId OrderId, params CreateQuoteParams) {
+	var request CreateQuoteRequestObject
+
+	request.OrderId = orderId
+	request.Params = params
+
+	var body CreateQuoteJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.CreateQuote(ctx, request.(CreateQuoteRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "CreateQuote")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(CreateQuoteResponseObject); ok {
+		if err := validResponse.VisitCreateQuoteResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// UpdateQuote operation middleware
+func (sh *strictHandler) UpdateQuote(ctx *gin.Context, orderId OrderId, quoteId QuoteId, params UpdateQuoteParams) {
+	var request UpdateQuoteRequestObject
+
+	request.OrderId = orderId
+	request.QuoteId = quoteId
+	request.Params = params
+
+	var body UpdateQuoteJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.UpdateQuote(ctx, request.(UpdateQuoteRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "UpdateQuote")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(UpdateQuoteResponseObject); ok {
+		if err := validResponse.VisitUpdateQuoteResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// DecideQuote operation middleware
+func (sh *strictHandler) DecideQuote(ctx *gin.Context, orderId OrderId, quoteId QuoteId, params DecideQuoteParams) {
+	var request DecideQuoteRequestObject
+
+	request.OrderId = orderId
+	request.QuoteId = quoteId
+	request.Params = params
+
+	var body DecideQuoteJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.DecideQuote(ctx, request.(DecideQuoteRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "DecideQuote")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(DecideQuoteResponseObject); ok {
+		if err := validResponse.VisitDecideQuoteResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// SendQuote operation middleware
+func (sh *strictHandler) SendQuote(ctx *gin.Context, orderId OrderId, quoteId QuoteId, params SendQuoteParams) {
+	var request SendQuoteRequestObject
+
+	request.OrderId = orderId
+	request.QuoteId = quoteId
+	request.Params = params
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.SendQuote(ctx, request.(SendQuoteRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "SendQuote")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(SendQuoteResponseObject); ok {
+		if err := validResponse.VisitSendQuoteResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// TransitionServiceOrder operation middleware
+func (sh *strictHandler) TransitionServiceOrder(ctx *gin.Context, orderId OrderId, params TransitionServiceOrderParams) {
+	var request TransitionServiceOrderRequestObject
+
+	request.OrderId = orderId
+	request.Params = params
+
+	var body TransitionServiceOrderJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.TransitionServiceOrder(ctx, request.(TransitionServiceOrderRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "TransitionServiceOrder")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(TransitionServiceOrderResponseObject); ok {
+		if err := validResponse.VisitTransitionServiceOrderResponse(ctx.Writer); err != nil {
+			sh.options.ResponseErrorHandlerFunc(ctx, err)
+		}
+	} else if response != nil {
+		sh.options.ResponseErrorHandlerFunc(ctx, fmt.Errorf("unexpected response type: %T", response))
+	}
+}
+
+// OpenWarrantyReturn operation middleware
+func (sh *strictHandler) OpenWarrantyReturn(ctx *gin.Context, orderId OrderId, params OpenWarrantyReturnParams) {
+	var request OpenWarrantyReturnRequestObject
+
+	request.OrderId = orderId
+	request.Params = params
+
+	var body OpenWarrantyReturnJSONRequestBody
+	var err error
+	// A request validator built on kin-openapi's openapi3filter with
+	// KeepValidatedValue leaves the value it validated on the body. Bind
+	// that value, matching member names exactly, so the handler receives
+	// what was validated instead of a second, case-insensitive decode.
+	if vb, ok := ctx.Request.Body.(interface{ ValidatedValue() any }); !ok || runtime.BindJSONValue(vb.ValidatedValue(), &body) != nil {
+		err = ctx.ShouldBindJSON(&body)
+	} else if binding.Validator != nil {
+		// ShouldBindJSON runs the struct validator after decoding; keep that.
+		err = binding.Validator.ValidateStruct(&body)
+	}
+	if err != nil {
+		sh.options.RequestErrorHandlerFunc(ctx, err)
+		return
+	}
+	request.Body = &body
+
+	handler := func(ctx *gin.Context, request any) (any, error) {
+		return sh.ssi.OpenWarrantyReturn(ctx, request.(OpenWarrantyReturnRequestObject))
+	}
+	for _, middleware := range sh.middlewares {
+		handler = middleware(handler, "OpenWarrantyReturn")
+	}
+
+	response, err := handler(ctx, request)
+
+	if err != nil {
+		sh.options.HandlerErrorFunc(ctx, err)
+	} else if validResponse, ok := response.(OpenWarrantyReturnResponseObject); ok {
+		if err := validResponse.VisitOpenWarrantyReturnResponse(ctx.Writer); err != nil {
 			sh.options.ResponseErrorHandlerFunc(ctx, err)
 		}
 	} else if response != nil {
@@ -6844,126 +10260,191 @@ func (sh *strictHandler) UpdateUserGrants(ctx *gin.Context, userId UserId) {
 // const string: with thousands of chunks the chained `+` fold is several
 // times slower for the Go compiler than parsing a slice literal.
 var swaggerSpec = []string{
-	"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",
+	"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",
+	"DwAA//8=",
 }
 
 // decodeSpec returns the embedded OpenAPI spec as raw JSON bytes,

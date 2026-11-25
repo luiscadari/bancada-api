@@ -11,12 +11,14 @@ import (
 	"github.com/luiscadari/bancada-api/internal/identity"
 	"github.com/luiscadari/bancada-api/internal/platform/reqctx"
 	"github.com/luiscadari/bancada-api/internal/registry"
+	"github.com/luiscadari/bancada-api/internal/serviceorder"
 )
 
 // Aliases give each embedded module handler a distinct field name.
 type (
-	IdentityHandler = identity.Handler
-	RegistryHandler = registry.Handler
+	IdentityHandler     = identity.Handler
+	RegistryHandler     = registry.Handler
+	ServiceOrderHandler = serviceorder.Handler
 )
 
 // Server implements gen.StrictServerInterface by embedding the module handlers.
@@ -24,6 +26,7 @@ type Server struct {
 	Health
 	*IdentityHandler
 	*RegistryHandler
+	*ServiceOrderHandler
 }
 
 var _ gen.StrictServerInterface = (*Server)(nil)

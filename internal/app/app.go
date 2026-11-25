@@ -9,13 +9,17 @@ import (
 
 	"github.com/luiscadari/bancada-api/internal/api"
 	"github.com/luiscadari/bancada-api/internal/api/gen"
+	"github.com/luiscadari/bancada-api/internal/finance"
 	"github.com/luiscadari/bancada-api/internal/identity"
+	"github.com/luiscadari/bancada-api/internal/inventory"
 	"github.com/luiscadari/bancada-api/internal/platform/audit"
 	"github.com/luiscadari/bancada-api/internal/platform/auth"
 	"github.com/luiscadari/bancada-api/internal/platform/config"
+	"github.com/luiscadari/bancada-api/internal/platform/crypto"
 	"github.com/luiscadari/bancada-api/internal/platform/database"
 	"github.com/luiscadari/bancada-api/internal/platform/httpx"
 	"github.com/luiscadari/bancada-api/internal/registry"
+	"github.com/luiscadari/bancada-api/internal/serviceorder"
 )
 
 // App is the assembled HTTP application.
@@ -25,6 +29,7 @@ type App struct {
 	SystemDB *gorm.DB
 	Identity *identity.Service
 	Registry *registry.Service
+	Orders   *serviceorder.Service
 }
 
 // New builds the application from cfg.
@@ -60,10 +65,22 @@ func New(cfg config.Config) (*App, error) {
 	registrySvc := registry.NewService()
 	identitySvc.OnAccountCreated(registrySvc.OnAccountCreated)
 
+	key, err := cfg.DevicePasswordKeyBytes()
+	if err != nil {
+		return nil, err
+	}
+	sealer, err := crypto.NewSealer(key)
+	if err != nil {
+		return nil, err
+	}
+	// Stock and finance are not built yet: their stubs keep the order flow complete.
+	ordersSvc := serviceorder.NewService(registrySvc, identitySvc, inventory.NoOp{}, finance.NoPayments{}, sealer)
+
 	server := &api.Server{
-		Health:          api.Health{DB: appDB},
-		IdentityHandler: identity.NewHandler(identitySvc),
-		RegistryHandler: registry.NewHandler(registrySvc),
+		Health:              api.Health{DB: appDB},
+		IdentityHandler:     identity.NewHandler(identitySvc),
+		RegistryHandler:     registry.NewHandler(registrySvc),
+		ServiceOrderHandler: serviceorder.NewHandler(ordersSvc),
 	}
 
 	if cfg.Env == "production" {
@@ -89,7 +106,7 @@ func New(cfg config.Config) (*App, error) {
 		ErrorHandler: func(c *gin.Context, err error, _ int) { httpx.RequestError(c, err) },
 	})
 
-	return &App{Router: r, AppDB: appDB, SystemDB: systemDB, Identity: identitySvc, Registry: registrySvc}, nil
+	return &App{Router: r, AppDB: appDB, SystemDB: systemDB, Identity: identitySvc, Registry: registrySvc, Orders: ordersSvc}, nil
 }
 
 // Close releases the database pools.

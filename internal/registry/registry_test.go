@@ -332,3 +332,42 @@ func TestRegistryTenantIsolation(t *testing.T) {
 	assert.Equal(t, http.StatusConflict, res.Status)
 	assert.Equal(t, "Cliente Exclusivo da Loja A", a.Do(t, http.MethodGet, "/v1/customers/"+customerID, nil).JSON(t)["name"])
 }
+
+func TestCatalogUpdatesAndSuppliers(t *testing.T) {
+	tn := apptest.SignupWith(t, env, false)
+	svc := tn.Do(t, http.MethodPost, "/v1/services", map[string]any{"name": "Limpeza", "price_cents": 8000}).JSON(t)
+	svcID := svc["id"].(string)
+	res := tn.Do(t, http.MethodPatch, "/v1/services/"+svcID, map[string]any{
+		"price_cents": 9000, "warranty_days": 30, "commission_percent": 5, "active": false, "description": "Interna",
+	})
+	require.Equal(t, http.StatusOK, res.Status, string(res.Body))
+	got := tn.Do(t, http.MethodGet, "/v1/services/"+svcID, nil).JSON(t)
+	assert.EqualValues(t, 9000, got["price_cents"])
+	assert.EqualValues(t, 30, got["warranty_days"])
+	assert.Equal(t, false, got["active"])
+	assert.Equal(t, "Interna", got["description"])
+	assert.Len(t, tn.Do(t, http.MethodGet, "/v1/services?active=true", nil).Items(t), 0)
+	assert.Equal(t, http.StatusNotFound, tn.Do(t, http.MethodGet, "/v1/services/"+newID(), nil).Status)
+
+	res = tn.Do(t, http.MethodPost, "/v1/suppliers", map[string]any{
+		"name": "Distribuidora Peças", "document": validCNPJ, "email": "vendas@pecas.com", "phone": "(11) 4000-0000",
+	})
+	require.Equal(t, http.StatusCreated, res.Status, string(res.Body))
+	supID := res.JSON(t)["id"].(string)
+	res = tn.Do(t, http.MethodPatch, "/v1/suppliers/"+supID, map[string]any{"contact_name": "Carlos", "notes": ""})
+	require.Equal(t, http.StatusOK, res.Status, string(res.Body))
+	assert.Equal(t, "Carlos", res.JSON(t)["contact_name"])
+	assert.Equal(t, "Distribuidora Peças", tn.Do(t, http.MethodGet, "/v1/suppliers/"+supID, nil).JSON(t)["name"])
+	assert.Len(t, tn.Do(t, http.MethodGet, "/v1/suppliers?q=distribuidora", nil).Items(t), 1)
+
+	customer := tn.Do(t, http.MethodPost, "/v1/customers", map[string]any{"type": "individual", "name": "Bia"}).JSON(t)
+	customerID := customer["id"].(string)
+	res = tn.Do(t, http.MethodPost, "/v1/customers/"+customerID+"/contacts", map[string]any{"name": "Bia", "phone": "11 91234-5678", "is_primary": true})
+	require.Equal(t, http.StatusCreated, res.Status, string(res.Body))
+	assert.Equal(t, true, res.JSON(t)["is_primary"])
+	types := tn.Do(t, http.MethodPost, "/v1/equipment-types", map[string]any{"name": "Tablet", "fields": []any{}, "checklist": []any{}}).JSON(t)
+	eq := tn.Do(t, http.MethodPost, "/v1/equipment", map[string]any{"customer_id": customerID, "type_id": types["id"]}).JSON(t)
+	res = tn.Do(t, http.MethodGet, "/v1/equipment/"+eq["id"].(string), nil)
+	require.Equal(t, http.StatusOK, res.Status)
+	assert.Equal(t, customerID, res.JSON(t)["customer_id"])
+}
